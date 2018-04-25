@@ -22,7 +22,7 @@ done
 $DEBUG && set -x
 
 # First update all glsa affected packages
-sudo glsa-check -f affected || exit 1
+glsa-check -f affected || exit 1
 
 # Then proceed with all world packages that have no fetch restrictions
 # but updates
@@ -32,7 +32,7 @@ if [[ -z $PACKAGES ]] ; then
 else
     echo "Stage 1: World packages with updates"
     emerge -tpv ${PACKAGES} || exit 1
-    $PRETEND || sudo emerge $EMERGE_OPTS -u $PACKAGES --keep-going || exit 1
+    $PRETEND || emerge $EMERGE_OPTS -t $PACKAGES --keep-going || exit 1
 fi
 
 $ONLY_WORLD && exit
@@ -44,18 +44,18 @@ if [[ -z $PACKAGES ]] ; then
     echo "Stage2: Skipping, no obsolete packages"
 else
     echo "Stage 2: Non-World packages that became obsolete"
-    sudo emerge $EMERGE_OPTS -tpv $PACKAGES || exit 1
+    emerge $EMERGE_OPTS -tpv $PACKAGES || exit 1
     if ! $PRETEND ; then
 	for p in $PACKAGES ; do
 	    echo "Now trying to update $p"
 	    eix -I -e $p
-	    sudo emerge $EMERGE_OPTS -1u $p
+	    emerge $EMERGE_OPTS -1u $p
 	done
     fi
 fi
 
-sudo emerge @preserved-rebuild
-sudo revdep-rebuild -- --keep-going || exit 1
+emerge @preserved-rebuild
+revdep-rebuild -- --keep-going || exit 1
 
 RESTRICT_FETCH_PACKAGES=$(eix -I -u --world-file --only-names --restrict-fetch )
 if [[ ! -z $RESTRICT_FETCH_PACKAGES ]]; then
