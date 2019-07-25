@@ -1,11 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-EMERGE_OPTS="-j 2"
+EMERGE_OPTS="-j 2 --with-bdeps=y --complete-graph --keep-going"
 ONLY_WORLD=false
 DEBUG=false
 PRETEND=false
+SYNC=false
 
-while getopts "dpw" OPTION; do
+while getopts "dpsw" OPTION; do
     case $OPTION in
 	d)
 	    DEBUG=true
