@@ -42,7 +42,7 @@ if [[ -z $PACKAGES ]] ; then
 else
     echo "Stage 1: World packages with updates"
     echo "${PACKAGES}"
-    $PRETEND || emerge $EMERGE_OPTS -t $PACKAGES --keep-going || exit 1
+    $PRETEND || emerge $EMERGE_OPTS -t $PACKAGES || exit 1
 fi
 
 $ONLY_WORLD && exit
