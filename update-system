@@ -23,7 +23,9 @@ while getopts "dpsw" OPTION; do
     esac
 done
 
-$DEBUG && set -x
+if $DEBUG; then
+	set -x
+fi
 
 if $SYNC; then
 	emerge --sync
