@@ -14,6 +14,9 @@ while getopts "dpsw" OPTION; do
 	p)
 	    PRETEND=true
 	    ;;
+	s)
+		SYNC=true
+		;;
 	w)
 	    ONLY_WORLD=true
 	    ;;
@@ -21,6 +24,10 @@ while getopts "dpsw" OPTION; do
 done
 
 $DEBUG && set -x
+
+if $SYNC; then
+	emerge --sync
+fi
 
 # First update all glsa affected packages
 glsa-check -f affected || exit 1
