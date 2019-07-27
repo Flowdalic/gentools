@@ -41,7 +41,7 @@ if $SYNC; then
 	emerge --sync
 fi
 
-# First try update all pakckages that become obsolete since this also
+# First try update all packages that become obsolete since this also
 # means that some other packages will possibly be updated because of
 # rebuilds, which may also include packages that would have been
 # updated at a later stage anyways. We therefore prevent emerging the
