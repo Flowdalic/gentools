@@ -31,38 +31,56 @@ if $SYNC; then
 	emerge --sync
 fi
 
-# First update all glsa affected packages
+# First try update all pakckages that become obsolete since this also
+# means that some other packages will possibly be updated because of
+# rebuilds, which may also include packages that would have been
+# updated at a later stage anyways. We therefore prevent emerging the
+# same package twice.
+if ! $ONLY_WORLD; then
+	OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
+	if [[ -z $OBSOLETE_PACKAGES ]] ; then
+		echo "No obsolete packages packages found"
+	else
+		cat <<EOF
+The following obsolete packages where found:
+--------------------------------------------
+${OBSOLETE_PACKAGES}
+--------------------------------------------
+Attempting to update those packages
+EOF
+		echo "Packages that became obsolete found.\n Updating"
+		emerge $EMERGE_OPTS -tpv $OBSOLETE_PACKAGES || exit 1
+		if ! $PRETEND ; then
+			emerge ${EMERGE_OPTS} -1u ${OBSOLETE_PACKAGES}
+
+			OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
+			if [[ ! -z ${OBSOLETE_PACKAGES} ]]; then
+				# Still found some obsolete packages, starting single merging.
+				for p in $OBSOLETE_PACKAGES ; do
+					echo "Now trying to update $p"
+					eix -I -e $p
+					emerge $EMERGE_OPTS -1u $p
+				done
+			fi
+		fi
+	fi
+fi
+
+# Update all glsa affected packages
 glsa-check -f affected || exit 1
 
 # Then proceed with all world packages that have no fetch restrictions
 # but updates
 PACKAGES=$(eix -I -u --world-file --only-names --not -\( --restrict-fetch -\) )
 if [[ -z $PACKAGES ]] ; then
-    echo "Stage 1: Skipping, no world packages"
+    echo "No world packages with updated"
 else
-    echo "Stage 1: World packages with updates"
+    echo "World packages with updates"
     echo "${PACKAGES}"
     $PRETEND || emerge $EMERGE_OPTS -t $PACKAGES || exit 1
 fi
 
 $ONLY_WORLD && exit
-
-# If -w was not given, proceed with packages that become obsolete. For
-# example because the ebuild for the installed version got deleted
-PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
-if [[ -z $PACKAGES ]] ; then
-    echo "Stage2: Skipping, no obsolete packages"
-else
-    echo "Stage 2: Non-World packages that became obsolete"
-    emerge $EMERGE_OPTS -tpv $PACKAGES || exit 1
-    if ! $PRETEND ; then
-	for p in $PACKAGES ; do
-	    echo "Now trying to update $p"
-	    eix -I -e $p
-	    emerge $EMERGE_OPTS -1u $p
-	done
-    fi
-fi
 
 emerge @preserved-rebuild
 revdep-rebuild -- --keep-going || exit 1
