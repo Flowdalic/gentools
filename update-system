@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-EMERGE_OPTS="-j 2 --with-bdeps=y --complete-graph --keep-going"
+EMERGE_OPTS="-v -j 2 --with-bdeps=y --complete-graph --keep-going"
 ONLY_WORLD=false
 DEBUG=false
 PRETEND=false
@@ -55,7 +55,7 @@ if ! $ONLY_WORLD; then
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			emerge $EMERGE_OPTS -tpv $OBSOLETE_PACKAGES || exit 1
+			emerge $EMERGE_OPTS -tp $OBSOLETE_PACKAGES || exit 1
 		else
 			emerge ${EMERGE_OPTS} -1u ${OBSOLETE_PACKAGES}
 
