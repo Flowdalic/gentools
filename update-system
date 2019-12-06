@@ -33,6 +33,12 @@ Attempting to update those packages
 EOF
 }
 
+checkConsistency() {
+	revdep-rebuild -- --keep-going || exit 1
+	perl-cleaner --all
+	haskell-updater
+}
+
 if $DEBUG; then
 	set -x
 fi
@@ -91,7 +97,8 @@ fi
 $ONLY_WORLD && exit
 
 emerge @preserved-rebuild
-revdep-rebuild -- --keep-going || exit 1
+
+checkConsistency
 
 RESTRICT_FETCH_PACKAGES=$(eix -I -u --world-file --only-names --restrict-fetch )
 if [[ ! -z $RESTRICT_FETCH_PACKAGES ]]; then
