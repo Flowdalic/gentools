@@ -5,6 +5,7 @@ ONLY_WORLD=false
 DEBUG=false
 PRETEND=false
 SYNC=false
+BE_ULTRA_NICE=true
 
 while getopts "dpsw" OPTION; do
     case $OPTION in
@@ -34,9 +35,20 @@ EOF
 }
 
 checkConsistency() {
-	revdep-rebuild -- --keep-going || exit 1
-	perl-cleaner --all
-	haskell-updater
+	run revdep-rebuild -- --keep-going || exit 1
+	run perl-cleaner --all
+	run haskell-updater
+}
+
+run() {
+	runCommand=()
+	if $BE_ULTRA_NICE; then
+		runCommand+=("chrt --idle 0 ionice -c idle")
+	fi
+
+	runCommand+=(${@})
+
+	${runCommand[@]}
 }
 
 if $DEBUG; then
@@ -44,7 +56,7 @@ if $DEBUG; then
 fi
 
 if $SYNC; then
-	emerge --sync
+	run emerge --sync
 fi
 
 # First try update all pakckages that become obsolete since this also
@@ -61,9 +73,9 @@ if ! $ONLY_WORLD; then
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			emerge $EMERGE_OPTS -tpv $OBSOLETE_PACKAGES || exit 1
+			run emerge $EMERGE_OPTS -tpv $OBSOLETE_PACKAGES || exit 1
 		else
-			emerge ${EMERGE_OPTS} -1u ${OBSOLETE_PACKAGES}
+			run emerge ${EMERGE_OPTS} -1u ${OBSOLETE_PACKAGES}
 
 			OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
 			if [[ ! -z ${OBSOLETE_PACKAGES} ]]; then
@@ -73,7 +85,7 @@ if ! $ONLY_WORLD; then
 				for p in $OBSOLETE_PACKAGES ; do
 					echo "Now trying to update $p"
 					eix -I -e $p
-					emerge $EMERGE_OPTS -1u $p
+					run emerge $EMERGE_OPTS -1u $p
 				done
 			fi
 		fi
@@ -81,7 +93,7 @@ if ! $ONLY_WORLD; then
 fi
 
 # Update all glsa affected packages
-glsa-check -f affected || exit 1
+run glsa-check -f affected || exit 1
 
 # Then proceed with all world packages that have no fetch restrictions
 # but updates
@@ -91,12 +103,14 @@ if [[ -z $PACKAGES ]] ; then
 else
     echo "World packages with updates"
     echo "${PACKAGES}"
-    $PRETEND || emerge $EMERGE_OPTS -t $PACKAGES || exit 1
+    if ! $PRETEND; then
+		run emerge $EMERGE_OPTS -t $PACKAGES || exit 1
+	fi
 fi
 
 $ONLY_WORLD && exit
 
-emerge @preserved-rebuild
+run emerge @preserved-rebuild
 
 checkConsistency
 
