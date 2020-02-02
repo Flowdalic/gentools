@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
 
-EMERGE_OPTS="-v -j 2 --with-bdeps=y --complete-graph --keep-going"
+EMERGE_OPTS=()
+EMERGE_OPTS+=("-v")
+EMERGE_OPTS+=("--with-bdeps=y")
+EMERGE_OPTS+=("--complete-graph")
+EMERGE_OPTS+=("--keep-going")
+
 ONLY_WORLD=false
 DEBUG=false
 PRETEND=false
 SYNC=false
 BE_ULTRA_NICE=true
+JOBS=""
 
-while getopts "dpsw" OPTION; do
+while getopts "dj:psw" OPTION; do
     case $OPTION in
 	d)
 	    DEBUG=true
 	    ;;
+	j)
+		JOBS=${OPTARG}
+		;;
 	p)
 	    PRETEND=true
 	    ;;
@@ -21,8 +30,18 @@ while getopts "dpsw" OPTION; do
 	w)
 	    ONLY_WORLD=true
 	    ;;
+	*)
+		echo "Invalid option: ${OPTION}"
+		exit 1
     esac
 done
+
+if [[ -z $JOBS ]]; then
+	CORES=$(nproc)
+	JOBS=$((CORES / 4))
+fi
+
+EMERGE_OPTS+=("--jobs=${JOBS}")
 
 printObsoletePackages() {
 		cat <<EOF
@@ -73,9 +92,9 @@ if ! $ONLY_WORLD; then
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			run emerge $EMERGE_OPTS -tp $OBSOLETE_PACKAGES || exit 1
+			run emerge ${EMERGE_OPTS[@]} -tp $OBSOLETE_PACKAGES || exit 1
 		else
-			run emerge ${EMERGE_OPTS} -1u ${OBSOLETE_PACKAGES}
+			run emerge ${EMERGE_OPTS[@]} -1u ${OBSOLETE_PACKAGES}
 
 			OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
 			if [[ ! -z ${OBSOLETE_PACKAGES} ]]; then
