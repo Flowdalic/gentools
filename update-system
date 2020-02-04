@@ -62,7 +62,7 @@ EOF
 checkConsistency() {
 	run revdep-rebuild -- --keep-going || exit 1
 	run perl-cleaner --all
-	run haskell-updater
+	run haskell-updater -- ${EMERGE_OPTS[@]}
 }
 
 run() {
