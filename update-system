@@ -118,6 +118,7 @@ if ! $ONLY_WORLD; then
 fi
 
 # Update all glsa affected packages
+echo "glsa-check: Checking for packages with known vulnerabilities"
 run glsa-check -f affected || exit 1
 
 # Then proceed with all world packages that have no fetch restrictions
