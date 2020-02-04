@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 EMERGE_OPTS=()
-EMERGE_OPTS+=("-v")
+EMERGE_OPTS+=("--verbose")
 EMERGE_OPTS+=("--with-bdeps=y")
 EMERGE_OPTS+=("--complete-graph")
 EMERGE_OPTS+=("--keep-going")
