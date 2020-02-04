@@ -60,9 +60,9 @@ EOF
 }
 
 checkConsistency() {
-	run revdep-rebuild -- --keep-going || exit 1
-	run perl-cleaner --all
+	run perl-cleaner --all -- ${EMERGE_OPTS[@]}
 	run haskell-updater -- ${EMERGE_OPTS[@]}
+	run revdep-rebuild -- ${EMERGE_OPTS[@]}
 }
 
 run() {
