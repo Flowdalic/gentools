@@ -129,7 +129,7 @@ else
     echo "World packages with updates"
     echo "${PACKAGES}"
     if ! $PRETEND; then
-		run emerge $EMERGE_OPTS -t $PACKAGES || exit 1
+		run emerge ${EMERGE_OPTS[@]} -t $PACKAGES || exit 1
 	fi
 fi
 
