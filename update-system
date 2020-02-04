@@ -39,6 +39,12 @@ done
 if [[ -z $JOBS ]]; then
 	CORES=$(nproc)
 	JOBS=$((CORES / 4))
+
+	# We want per default at least 2 jobs to improve the system
+	# utilization.
+	if [[ $JOBS -lt 2 ]]; then
+		JOBS=2
+	fi
 fi
 
 EMERGE_OPTS+=("--jobs=${JOBS}")
