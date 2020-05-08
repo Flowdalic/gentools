@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 EMERGE_OPTS=()
 EMERGE_OPTS+=("--verbose")
@@ -12,6 +13,12 @@ PRETEND=false
 SYNC=false
 BE_ULTRA_NICE=true
 JOBS=""
+
+do_exit() {
+	exit 1
+}
+
+trap do_exit SIGINT
 
 while getopts "dj:psw" OPTION; do
     case $OPTION in
@@ -53,7 +60,7 @@ printObsoletePackages() {
 		cat <<EOF
 The following obsolete packages where found:
 --------------------------------------------
-${OBSOLETE_PACKAGES}
+${UPGRADEABLE_OBSOLETE_PACKAGES[@]}
 --------------------------------------------
 Attempting to update those packages
 EOF
@@ -71,9 +78,14 @@ run() {
 		runCommand+=("chrt --idle 0 ionice -c idle")
 	fi
 
+	# shellcheck disable=SC2068
 	runCommand+=(${@})
 
+	set +e
+	# shellcheck disable=SC2068
 	${runCommand[@]}
+	set -e
+	return $?
 }
 
 if $DEBUG; then
@@ -84,30 +96,54 @@ if $SYNC; then
 	run emerge --sync
 fi
 
+populate_obsolte_packages() {
+	UPGRADEABLE_OBSOLETE_PACKAGES=()
+	NON_UPGRADEABLE_PACKAGES=()
+
+	local obsolete_packages
+	obsolete_packages=$(TEST_FOR_REDUNDANCY=false \
+							  eix \
+							  -T \
+							  --only-names)
+
+	for obsolete_package in ${obsolete_packages}; do
+		# shellcheck disable=SC2091
+		if $(FORMAT='{upgrade}true{else}false{}' eix --exact "${obsolete_package}"); then
+			UPGRADEABLE_OBSOLETE_PACKAGES+=("${obsolete_package}")
+		else
+			NON_UPGRADEABLE_PACKAGES+=("${obsolete_package}")
+		fi
+	done
+}
+
 # First try update all packages that become obsolete since this also
 # means that some other packages will possibly be updated because of
 # rebuilds, which may also include packages that would have been
 # updated at a later stage anyways. We therefore prevent emerging the
 # same package twice.
 if ! $ONLY_WORLD; then
-	OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
-	if [[ -z $OBSOLETE_PACKAGES ]] ; then
+	echo "Searching for obsolete packages"
+	populate_obsolte_packages
+
+	if [[ ${#UPGRADEABLE_OBSOLETE_PACKAGES[@]} -eq 0 ]] ; then
 		echo "No obsolete packages packages found"
 	else
 		printObsoletePackages
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			run emerge ${EMERGE_OPTS[@]} -tp $OBSOLETE_PACKAGES || exit 1
+			run emerge ${EMERGE_OPTS[@]} -tp ${UPGRADEABLE_OBSOLETE_PACKAGES[@]} || exit 1
 		else
-			run emerge ${EMERGE_OPTS[@]} -1u ${OBSOLETE_PACKAGES}
+			run emerge ${EMERGE_OPTS[@]} -1u ${UPGRADEABLE_OBSOLETE_PACKAGES[@]}
 
-			OBSOLETE_PACKAGES=$(TEST_FOR_REDUNDANCY=false eix -T --only-names)
-			if [[ ! -z ${OBSOLETE_PACKAGES} ]]; then
+			if [[ ${?} -ne 0 ]]; then
 				echo "Still found some more obsolete packages."
 				echo "Switching to single emerge mode…"
+
+				populate_obsolte_packages
 				printObsoletePackages
-				for p in $OBSOLETE_PACKAGES ; do
+
+				for p in ${UPGRADEABLE_OBSOLETE_PACKAGES[@]} ; do
 					echo "Now trying to update $p"
 					eix -I -e $p
 					run emerge $EMERGE_OPTS -1u $p
@@ -123,14 +159,29 @@ run glsa-check -f affected || exit 1
 
 # Then proceed with all world packages that have no fetch restrictions
 # but updates
-PACKAGES=$(eix -I -u --world-file --only-names --not -\( --restrict-fetch -\) )
-if [[ -z $PACKAGES ]] ; then
+WORLD_PACKAGES=$(eix \
+			   -I -u \
+			   --world-file \
+			   --only-names \
+			   --not -\( --restrict-fetch -\))
+
+UPGRADEABLE_WORLD_PACKAGES=()
+for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
+	# shellcheck disable=SC2091
+	if $(FORMAT='{upgrade}true{else}false{}' eix --exact "${WORLD_PACKAGE}"); then
+		UPGRADEABLE_WORLD_PACKAGES+=("${WORLD_PACKAGE}")
+	else
+		NON_UPGRADEABLE_PACKAGES+=("${WORLD_PACKAGE}")
+	fi
+done
+
+if [[ ${#UPGRADEABLE_OBSOLETE_PACKAGES[@]} -eq 0 ]] ; then
     echo "No world packages with updated"
 else
     echo "World packages with updates"
-    echo "${PACKAGES}"
+	echo "${UPGRADEABLE_WORLD_PACKAGES[@]}"
     if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} -t $PACKAGES || exit 1
+		run emerge ${EMERGE_OPTS[@]} -t ${UPGRADEABLE_WORLD_PACKAGES[@]} || exit 1
 	fi
 fi
 
@@ -145,4 +196,9 @@ if [[ ! -z $RESTRICT_FETCH_PACKAGES ]]; then
     echo "The following world packages have fetch restrictions"
     echo "Please resovle those"
     emerge -pv ${RESTRICT_FETCH_PACKAGES}
+fi
+
+if [[ ${#NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]} -ne 0 ]]; then
+	echo "The following packages need keyword adjustments"
+	eix ${NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]}
 fi
