@@ -60,7 +60,7 @@ printObsoletePackages() {
 		cat <<EOF
 The following obsolete packages where found:
 --------------------------------------------
-${UPGRADEABLE_OBSOLETE_PACKAGES[@]}
+$(printf '%s\n' "${UPGRADEABLE_OBSOLETE_PACKAGES[@]}")
 --------------------------------------------
 Attempting to update those packages
 EOF
