@@ -108,7 +108,7 @@ populate_obsolte_packages() {
 
 	for obsolete_package in ${obsolete_packages}; do
 		# shellcheck disable=SC2091
-		if $(FORMAT='{upgrade}true{else}false{}' eix --exact "${obsolete_package}"); then
+		if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${obsolete_package}"); then
 			UPGRADEABLE_OBSOLETE_PACKAGES+=("${obsolete_package}")
 		else
 			NON_UPGRADEABLE_PACKAGES+=("${obsolete_package}")
@@ -168,7 +168,7 @@ WORLD_PACKAGES=$(eix \
 UPGRADEABLE_WORLD_PACKAGES=()
 for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 	# shellcheck disable=SC2091
-	if $(FORMAT='{upgrade}true{else}false{}' eix --exact "${WORLD_PACKAGE}"); then
+	if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${WORLD_PACKAGE}"); then
 		UPGRADEABLE_WORLD_PACKAGES+=("${WORLD_PACKAGE}")
 	else
 		NON_UPGRADEABLE_PACKAGES+=("${WORLD_PACKAGE}")
