@@ -175,7 +175,7 @@ for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 	fi
 done
 
-if [[ ${#UPGRADEABLE_OBSOLETE_PACKAGES[@]} -eq 0 ]] ; then
+if [[ ${#UPGRADEABLE_WORLD_PACKAGES[@]} -eq 0 ]] ; then
     echo "No world packages with updated"
 else
     echo "World packages with updates"
