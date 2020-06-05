@@ -6,6 +6,7 @@ EMERGE_OPTS+=("--verbose")
 EMERGE_OPTS+=("--with-bdeps=y")
 EMERGE_OPTS+=("--complete-graph")
 EMERGE_OPTS+=("--keep-going")
+EMERGE_OPTS+=("--tree")
 
 ONLY_WORLD=false
 DEBUG=false
@@ -132,7 +133,7 @@ if ! $ONLY_WORLD; then
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			run emerge ${EMERGE_OPTS[@]} -tp ${UPGRADEABLE_OBSOLETE_PACKAGES[@]} || exit 1
+			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_OBSOLETE_PACKAGES[@]} || exit 1
 		else
 			run emerge ${EMERGE_OPTS[@]} -1u ${UPGRADEABLE_OBSOLETE_PACKAGES[@]}
 
@@ -181,7 +182,7 @@ else
     echo "World packages with updates"
 	echo "${UPGRADEABLE_WORLD_PACKAGES[@]}"
     if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} -t ${UPGRADEABLE_WORLD_PACKAGES[@]} || exit 1
+		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_WORLD_PACKAGES[@]} || exit 1
 	fi
 fi
 
