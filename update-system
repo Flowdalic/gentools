@@ -14,6 +14,7 @@ PRETEND=false
 SYNC=false
 BE_ULTRA_NICE=true
 JOBS=""
+DEPCLEAN=true
 
 do_exit() {
 	exit 1
@@ -21,8 +22,11 @@ do_exit() {
 
 trap do_exit SIGINT
 
-while getopts "dj:psw" OPTION; do
+while getopts "cdj:psw" OPTION; do
     case $OPTION in
+	c)
+		DEPCLEAN=false
+		;;
 	d)
 	    DEBUG=true
 	    ;;
@@ -202,4 +206,8 @@ fi
 if [[ ${#NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]} -ne 0 ]]; then
 	echo "The following packages need keyword adjustments"
 	eix ${NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]}
+fi
+
+if $DEPCLEAN; then
+	emerge --depclean
 fi
