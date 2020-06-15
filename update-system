@@ -181,7 +181,7 @@ for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 done
 
 if [[ ${#UPGRADEABLE_WORLD_PACKAGES[@]} -eq 0 ]] ; then
-    echo "No world packages with updated"
+    echo "No upgradeable world packages"
 else
     echo "World packages with updates"
 	echo "${UPGRADEABLE_WORLD_PACKAGES[@]}"
