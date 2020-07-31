@@ -116,7 +116,7 @@ determineObsoletePackages() {
 	for obsolete_package in ${obsolete_packages}; do
 		# shellcheck disable=SC2091
 		if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${obsolete_package}"); then
-			UPGRADEABLE__PACKAGES+=("${obsolete_package}")
+			UPGRADEABLE_PACKAGES+=("${obsolete_package}")
 		else
 			NON_UPGRADEABLE_PACKAGES+=("${obsolete_package}")
 		fi
