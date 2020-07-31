@@ -177,7 +177,6 @@ WORLD_PACKAGES=$(eix \
 			   --only-names \
 			   --not -\( --restrict-fetch -\))
 
-UPGRADEABLE_WORLD_PACKAGES=()
 for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 	# shellcheck disable=SC2091
 	if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${WORLD_PACKAGE}"); then
