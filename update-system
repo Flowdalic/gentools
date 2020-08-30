@@ -4,7 +4,6 @@ set -euo pipefail
 EMERGE_OPTS=()
 EMERGE_OPTS+=("--oneshot")
 EMERGE_OPTS+=("--verbose")
-EMERGE_OPTS+=("--with-bdeps=y")
 EMERGE_OPTS+=("--complete-graph")
 EMERGE_OPTS+=("--keep-going")
 EMERGE_OPTS+=("--tree")
