@@ -117,6 +117,9 @@ determineObsoletePackages() {
 	for obsolete_package in ${obsolete_packages}; do
 		# shellcheck disable=SC2091
 		if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${obsolete_package}"); then
+			# TODO: Take slots into account. If the currently
+			# installed slot is upgradeable, then use this
+			# slot. Otherwhise use the newest stable stlot.
 			UPGRADEABLE_PACKAGES+=("${obsolete_package}")
 		else
 			NON_UPGRADEABLE_PACKAGES+=("${obsolete_package}")
@@ -181,6 +184,9 @@ WORLD_PACKAGES=$(eix \
 for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 	# shellcheck disable=SC2091
 	if $(FORMAT='{upgrade}true{else}false{}' eix --exact --pure-packages "${WORLD_PACKAGE}"); then
+		# TODO: Take slots into account. If the currently
+		# installed slot is upgradeable, then use this
+		# slot. Otherwhise use the newest stable stlot.
 		UPGRADEABLE_PACKAGES+=("${WORLD_PACKAGE}")
 	else
 		NON_UPGRADEABLE_PACKAGES+=("${WORLD_PACKAGE}")
