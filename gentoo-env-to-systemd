@@ -1,9 +1,7 @@
-# Copyright 2020 Florian Schmaus
-# Distributed under the terms of the GNU General Public License v3 (or any later version)
 #!/usr/bin/env bash
+# Copyright 2020 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v3 (or any later version)
 set -euo pipefail
-
-shopt -s globstar
 
 while getopts :d OPT; do
 	case $OPT in
@@ -11,32 +9,24 @@ while getopts :d OPT; do
 			set -x
 			;;
 		*)
-			print "usage: ${0##*/} [-d] [--]"
+			echo "usage: ${0##*/} [-d]"
 			exit 2
 	esac
 done
 
-readonly GENTOO_ENV_DIR="/etc/env.d"
-readonly SYSTEMD_ENV_DIR="/usr/lib/environment.d"
-readonly GENTOO_SYSTEMD_ENV_PREFIX="gentoo-env"
+readonly GENTOO_PROFILE_ENV_PATH="/etc/profile.env"
+readonly GENTOO_SYSTEMD_ENV_CONF="/usr/lib/environment.d/gentoo-env.conf"
 
-transform_gentoo_env_file() {
-	local source_path="${1}"
-	local source_file="$(basename ${source_path})"
+# Strip "export " to transform gentoo's profile.env syntax, which is
+# shell, to systemd's environment.d syntax (which is shell-like
+# without explicit "export" keyword).
+readonly STRIP_EXPORT_REGEX="s;^export ;;"
+# Strip comments.
+readonly STRIP_COMMENTS_REGEX="/^[ \t]*#/d"
+readonly STRIP_EMPTY_LINES_REGEX="/^[ \t]*$/d"
 
-	# TODO: mangle subdirectories found in /etc/env.d into this.
-	local dest_file="${GENTOO_SYSTEMD_ENV_PREFIX}-${source_file}.conf"
-
-	cp "${source_path}" "${SYSTEMD_ENV_DIR}/${dest_file}"
-}
-
-# Delete existing.
-rm -f "${SYSTEMD_ENV_DIR}/${GENTOO_SYSTEMD_ENV_PREFIX}*"
-
-for gentoo_env_path in "${GENTOO_ENV_DIR}"/* "${GENTOO_ENV_DIR}"/**/*; do
-	if [[ ! -f ${gentoo_env_path} ]]; then
-		continue;
-	fi
-
-	transform_gentoo_env_file "${gentoo_env_path}"
-done
+sed -e "${STRIP_EXPORT_REGEX}" \
+	-e "${STRIP_COMMENTS_REGEX}" \
+	-e "${STRIP_EMPTY_LINES_REGEX}" \
+	"${GENTOO_PROFILE_ENV_PATH}" \
+	> "${GENTOO_SYSTEMD_ENV_CONF}"
