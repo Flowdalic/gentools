@@ -109,9 +109,10 @@ fi
 determineObsoletePackages() {
 	local obsolete_packages
 	obsolete_packages=$(TEST_FOR_REDUNDANCY=false \
-							  eix \
-							  -T \
-							  --only-names)
+						TEST_FOR_NONEXISTENT=true \
+										   eix \
+										   --test-obsolete \
+										   --only-names)
 
 	for obsolete_package in ${obsolete_packages}; do
 		# shellcheck disable=SC2091
