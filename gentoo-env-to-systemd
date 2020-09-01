@@ -23,6 +23,7 @@ readonly GENTOO_SYSTEMD_ENV_CONF="/usr/lib/environment.d/gentoo-env.conf"
 readonly STRIP_EXPORT_REGEX="s;^export ;;"
 # Strip comments.
 readonly STRIP_COMMENTS_REGEX="/^[ \t]*#/d"
+# Strip emtpy lines.
 readonly STRIP_EMPTY_LINES_REGEX="/^[ \t]*$/d"
 
 sed -e "${STRIP_EXPORT_REGEX}" \
