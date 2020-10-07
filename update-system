@@ -2,6 +2,7 @@
 set -euo pipefail
 
 EMERGE_OPTS=()
+EMERGE_OPTS+=("--update")
 EMERGE_OPTS+=("--complete-graph")
 EMERGE_OPTS+=("--keep-going")
 EMERGE_OPTS+=("--changed-use")
