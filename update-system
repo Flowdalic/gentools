@@ -9,6 +9,7 @@ EMERGE_OPTS+=("--changed-use")
 EMERGE_OPTS+=("--oneshot")
 EMERGE_OPTS+=("--tree")
 EMERGE_OPTS+=("--verbose")
+EMERGE_OPTS+=("--dynamic-deps y")
 
 ONLY_WORLD=false
 DEBUG=false
