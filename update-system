@@ -2,14 +2,16 @@
 set -euo pipefail
 
 EMERGE_OPTS=()
-EMERGE_OPTS+=("--update")
 EMERGE_OPTS+=("--complete-graph")
 EMERGE_OPTS+=("--keep-going")
-EMERGE_OPTS+=("--changed-use")
 EMERGE_OPTS+=("--oneshot")
 EMERGE_OPTS+=("--tree")
 EMERGE_OPTS+=("--verbose")
 EMERGE_OPTS+=("--dynamic-deps y")
+
+EMERGE_UPDATE_OPTS=()
+EMERGE_UPDATE_OPTS+=("--update")
+EMERGE_UPDATE_OPTS+=("--changed-use")
 
 ONLY_WORLD=false
 DEBUG=false
@@ -155,7 +157,7 @@ if ! $ONLY_WORLD; then
 		if $PRETEND; then
 			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]} || exit 1
 		else
-			run emerge ${EMERGE_OPTS[@]} -u ${UPGRADEABLE_PACKAGES[@]}
+			run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
 
 			if [[ ${?} -ne 0 ]]; then
 				echo "Still found some more obsolete packages."
@@ -167,7 +169,7 @@ if ! $ONLY_WORLD; then
 				for p in ${UPGRADEABLE_PACKAGES[@]} ; do
 					echo "Now trying to update $p"
 					eix -I -e $p
-					run emerge $EMERGE_OPTS -1u $p
+					run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} $p
 				done
 			fi
 		fi
@@ -207,6 +209,18 @@ if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
 else
 	printUpgradeablePackages "${PACKAGE_KIND}"
     if ! $PRETEND; then
+		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
+	fi
+fi
+
+# Reiterate over UPGRADEABLE_PACKAGES and see if they got updated. Any
+# packages that did not get updates are attempted to update again
+# without emerge's --update and --changed-use option.
+initPackagesArrays
+determineObsoletePackages
+if [[ ${#UPGRADEABLE_PACKAGES[@]} -ne 0 ]] ; then
+	printUpgradeablePackages "oneshot"
+	if ! $PRETEND; then
 		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
 	fi
 fi
