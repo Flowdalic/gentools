@@ -235,8 +235,10 @@ run emerge @preserved-rebuild
 
 checkConsistency
 
-RESTRICT_FETCH_PACKAGES=$(eix -I -u --world-file --only-names --restrict-fetch )
-if [[ ! -z $RESTRICT_FETCH_PACKAGES ]]; then
+# Note that eix will return an non-zero exit code if no package was
+# found, hence we add "|| true".
+RESTRICT_FETCH_PACKAGES=$(eix -I -u --world-file --only-names --restrict-fetch || true)
+if [[ -n ${RESTRICT_FETCH_PACKAGES} ]]; then
     echo "The following world packages have fetch restrictions"
     echo "Please resovle those"
     emerge -pv ${RESTRICT_FETCH_PACKAGES}
