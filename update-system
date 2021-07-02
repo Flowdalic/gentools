@@ -252,3 +252,9 @@ fi
 if $DEPCLEAN; then
 	emerge --depclean
 fi
+
+DISTDIR=$(portageq distdir)
+
+df -h "${DISTDIR}"
+eclean
+df -h "${DISTDIR}"
