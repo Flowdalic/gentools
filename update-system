@@ -244,17 +244,18 @@ if [[ -n ${RESTRICT_FETCH_PACKAGES} ]]; then
     emerge -pv ${RESTRICT_FETCH_PACKAGES}
 fi
 
-if [[ ${#NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]} -ne 0 ]]; then
-	echo "The following packages need keyword adjustments"
-	eix ${NON_UPGRADEABLE_OBSOLETE_PACKAGES[@]}
+if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
+	echo "The following packages need care (e.g. keyword adjustments)"
+	for pkg in ${NON_UPGRADEABLE_PACKAGES[@]}; do
+		eix $pkg
+	done
 fi
 
 if $DEPCLEAN; then
-	emerge --depclean
+	set +e
+	run emerge --depclean
+	set -e
 fi
 
-DISTDIR=$(portageq distdir)
-
-df -h "${DISTDIR}"
-eclean
-df -h "${DISTDIR}"
+run eclean distfiles
+run eclean packages
