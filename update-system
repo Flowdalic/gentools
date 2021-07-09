@@ -17,7 +17,7 @@ ONLY_WORLD=false
 DEBUG=false
 PRETEND=false
 SYNC=false
-BE_ULTRA_NICE=true
+BE_ULTRA_NICE=false
 JOBS=""
 DEPCLEAN=true
 EMERGE_ONCE=true
@@ -28,7 +28,7 @@ do_exit() {
 
 trap do_exit SIGINT
 
-while getopts "cdj:o:psw" OPTION; do
+while getopts "cdj:no:psw" OPTION; do
     case $OPTION in
 	c)
 		DEPCLEAN=false
@@ -38,6 +38,9 @@ while getopts "cdj:o:psw" OPTION; do
 	    ;;
 	j)
 		JOBS=${OPTARG}
+		;;
+	n)
+		BE_ULTRA_NICE=true
 		;;
 	o)
 		EMERGE_ONCE=${OPTARG}
