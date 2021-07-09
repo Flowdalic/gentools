@@ -5,3 +5,8 @@ Requires=network-online.target
 
 [Service]
 ExecStart=/usr/sbin/update-system -s
+
+CPUWeight=10
+IOWeight=10
+MemoryHigh=80%
+MemoryMax=95%
