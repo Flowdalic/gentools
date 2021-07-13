@@ -1,10 +1,10 @@
 [Unit]
-Description=Daily update the system around 6:30-7:00 in the morning
+Description=Daily update the system around 5:30-7:00 in the morning
 
 [Timer]
-OnCalendar=*-*-* 6:30:00
+OnCalendar=*-*-* 5:30:00
 Persistent=true
-RandomizedDelaySec=30min
+RandomizedDelaySec=90min
 
 [Install]
 WantedBy=timers.target
