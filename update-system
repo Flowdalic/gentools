@@ -120,7 +120,8 @@ determineObsoletePackages() {
 						TEST_FOR_NONEXISTENT=true \
 										   eix \
 										   --test-obsolete \
-										   --only-names)
+										   --only-names \
+										   || true)
 
 	for obsolete_package in ${obsolete_packages}; do
 		# shellcheck disable=SC2091
@@ -187,7 +188,8 @@ WORLD_PACKAGES=$(eix \
 			   -I -u \
 			   --world-file \
 			   --only-names \
-			   --not -\( --restrict-fetch -\))
+			   --not -\( --restrict-fetch -\) \
+			   || true)
 
 for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 	# shellcheck disable=SC2091
