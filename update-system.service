@@ -2,6 +2,7 @@
 Description=Update the system
 After=network-online.target
 Requires=network-online.target
+ConditionACPower=true
 
 [Service]
 ExecStart=/usr/sbin/update-system -s
