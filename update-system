@@ -26,6 +26,13 @@ do_exit() {
 	exit 1
 }
 
+command_exists() {
+	if command -v $@ &> /dev/null; then
+		return 0
+	fi
+	return 1
+}
+
 trap do_exit SIGINT
 
 while getopts "cdj:no:psw" OPTION; do
@@ -85,8 +92,14 @@ EOF
 }
 
 checkConsistency() {
-	run perl-cleaner --all -- ${EMERGE_OPTS[@]}
-	run haskell-updater -- ${EMERGE_OPTS[@]}
+	if commandExists perl-cleaner; then
+		run perl-cleaner --all -- ${EMERGE_OPTS[@]}
+	fi
+
+	if commandExists haskell-updater; then
+		run haskell-updater -- ${EMERGE_OPTS[@]}
+
+	fi
 	run revdep-rebuild -- ${EMERGE_OPTS[@]}
 }
 
