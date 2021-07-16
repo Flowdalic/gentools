@@ -92,11 +92,11 @@ EOF
 }
 
 checkConsistency() {
-	if commandExists perl-cleaner; then
+	if command_exists perl-cleaner; then
 		run perl-cleaner --all -- ${EMERGE_OPTS[@]}
 	fi
 
-	if commandExists haskell-updater; then
+	if command_exists haskell-updater; then
 		run haskell-updater -- ${EMERGE_OPTS[@]}
 
 	fi
