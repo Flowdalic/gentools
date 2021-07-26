@@ -68,15 +68,18 @@ while getopts "cdj:no:psw" OPTION; do
     esac
 done
 
-if [[ -z $JOBS ]]; then
-	CORES=$(nproc)
-	JOBS=$((CORES / 4))
+CORES=$(nproc)
 
-	# We want per default at least 2 jobs to improve the system
-	# utilization.
-	if [[ $JOBS -lt 2 ]]; then
-		JOBS=2
-	fi
+if $BE_ULTRA_NICE; then
+	# Only use 75% of the system's computational resources.
+	MAKE_LOAD=$(echo "${CORES} * 0.75" | bc)
+	MAKE_JOBS="${MAKE_LOAD%.*}"
+
+	export MAKEOPTS="--jobs=${MAKE_JOBS} --load-average=${MAKE_LOAD}"
+fi
+
+if [[ -z ${JOBS} ]]; then
+	JOBS=$((CORES / 4))
 fi
 
 EMERGE_OPTS+=("--jobs=${JOBS}")
