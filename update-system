@@ -249,7 +249,7 @@ run glsa-check -f affected || exit 1
 
 $ONLY_WORLD && exit
 
-run emerge @preserved-rebuild
+run emerge ${EMERGE_OPTS[@]} @preserved-rebuild
 
 checkConsistency
 
