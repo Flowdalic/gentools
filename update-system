@@ -252,8 +252,6 @@ run glsa-check -f affected || exit 1
 
 $ONLY_WORLD && exit
 
-run emerge ${EMERGE_OPTS[@]} @preserved-rebuild
-
 checkConsistency
 
 # Note that eix will return an non-zero exit code if no package was
