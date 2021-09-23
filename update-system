@@ -68,6 +68,10 @@ while getopts "cdj:no:psw" OPTION; do
     esac
 done
 
+if $DEBUG; then
+	set -x
+fi
+
 CORES=$(nproc)
 
 if $BE_ULTRA_NICE; then
@@ -121,10 +125,6 @@ run() {
 	set -e
 	return $?
 }
-
-if $DEBUG; then
-	set -x
-fi
 
 if $SYNC; then
 	run emerge --sync
