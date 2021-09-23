@@ -5,7 +5,7 @@ Requires=network-online.target
 ConditionACPower=true
 
 [Service]
-ExecStart=/usr/sbin/update-system -s
+ExecStart=/usr/sbin/update-system -s -l 0.75
 
 CPUWeight=10
 IOWeight=10

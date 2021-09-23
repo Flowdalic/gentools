@@ -19,6 +19,7 @@ PRETEND=false
 SYNC=false
 BE_ULTRA_NICE=false
 JOBS=""
+LOAD_PERCENTAGE=""
 DEPCLEAN=true
 EMERGE_ONCE=true
 
@@ -35,7 +36,7 @@ command_exists() {
 
 trap do_exit SIGINT
 
-while getopts "cdj:no:psw" OPTION; do
+while getopts "cdj:l:no:psw" OPTION; do
     case $OPTION in
 	c)
 		DEPCLEAN=false
@@ -45,6 +46,10 @@ while getopts "cdj:no:psw" OPTION; do
 	    ;;
 	j)
 		JOBS=${OPTARG}
+		;;
+	l)
+		LOAD_PERCENTAGE="${OPTARG}"
+		# TODO: Ensure that LOAD_PERCENTAGE is a non-negative float.
 		;;
 	n)
 		BE_ULTRA_NICE=true
@@ -74,10 +79,19 @@ fi
 
 CORES=$(nproc)
 
-if $BE_ULTRA_NICE; then
-	# Only use 75% of the system's computational resources.
-	MAKE_LOAD=$(echo "${CORES} * 0.75" | bc)
-	MAKE_JOBS="${MAKE_LOAD%.*}"
+if $BE_ULTRA_NICE || [[ -n "${LOAD_PERCENTAGE}" ]]; then
+	if [[ -z "${LOAD_PERCENTAGE}" ]]; then
+		LOAD_PERCENTAGE="0.85"
+	fi
+
+	MAKE_LOAD=$(echo "${CORES} * ${LOAD_PERCENTAGE}" | bc)
+
+	if [[ "${MAKE_LOAD%.*}" -lt 1 ]]; then
+		MAKE_LOAD="2"
+		MAKE_JOBS="1"
+	else
+		MAKE_JOBS="${MAKE_LOAD%.*}"
+	fi
 
 	export MAKEOPTS="--jobs=${MAKE_JOBS} --load-average=${MAKE_LOAD}"
 fi
