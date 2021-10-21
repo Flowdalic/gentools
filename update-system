@@ -292,3 +292,7 @@ fi
 
 run eclean distfiles
 run eclean packages
+
+if command_exists eclean-kernel; then
+	run eclean-kernel --num 5
+fi
