@@ -285,8 +285,14 @@ if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
 fi
 
 if $DEPCLEAN; then
+	KEEP_PACKAGES=(
+		sys-kernel/gentoo-kernel
+		sys-kernel/gentoo-kernel-bin
+	)
+
 	set +e
-	run emerge --depclean
+	run emerge --depclean \
+		--exclude "${KEEP_PACKAGES[@]"
 	set -e
 fi
 
