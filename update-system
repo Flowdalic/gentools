@@ -285,14 +285,19 @@ if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
 fi
 
 if $DEPCLEAN; then
-	KEEP_PACKAGES=(
+	EXCLUDE_ATOMS=(
 		sys-kernel/gentoo-kernel
 		sys-kernel/gentoo-kernel-bin
 	)
 
+	EXCLUDE_ARG=""
+	for EXCLUDE_ATOM in "${EXCLUDE_ATOMS[@]}"; do
+		EXCLUDE_ARG+="--exclude ${EXCLUDE_ATOM} "
+	done
+	
 	set +e
 	run emerge --depclean \
-		--exclude "${KEEP_PACKAGES[@]}"
+		${EXCLUDE_ARG}
 	set -e
 fi
 
