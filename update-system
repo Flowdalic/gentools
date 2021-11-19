@@ -292,7 +292,7 @@ if $DEPCLEAN; then
 
 	set +e
 	run emerge --depclean \
-		--exclude "${KEEP_PACKAGES[@]"
+		--exclude "${KEEP_PACKAGES[@]}"
 	set -e
 fi
 
