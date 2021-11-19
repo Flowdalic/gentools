@@ -27,7 +27,7 @@ do_exit() {
 	exit 1
 }
 
-command_exists() {
+command-exists() {
 	if command -v $@ &> /dev/null; then
 		return 0
 	fi
@@ -113,11 +113,11 @@ EOF
 }
 
 checkConsistency() {
-	if command_exists perl-cleaner; then
+	if command-exists perl-cleaner; then
 		run perl-cleaner --all
 	fi
 
-	if command_exists haskell-updater; then
+	if command-exists haskell-updater; then
 		run haskell-updater -- ${EMERGE_OPTS[@]}
 
 	fi
@@ -299,6 +299,6 @@ fi
 run eclean distfiles
 run eclean packages
 
-if command_exists eclean-kernel; then
+if command-exists eclean-kernel; then
 	run eclean-kernel --num 5
 fi
