@@ -7,7 +7,6 @@ EMERGE_OPTS+=("--keep-going")
 EMERGE_OPTS+=("--oneshot")
 EMERGE_OPTS+=("--tree")
 EMERGE_OPTS+=("--verbose")
-EMERGE_OPTS+=("--dynamic-deps y")
 
 EMERGE_UPDATE_OPTS=()
 EMERGE_UPDATE_OPTS+=("--update")
