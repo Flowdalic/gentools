@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-EMERGE_OPTS=()
-EMERGE_OPTS+=("--complete-graph")
-EMERGE_OPTS+=("--keep-going")
-EMERGE_OPTS+=("--oneshot")
-EMERGE_OPTS+=("--tree")
-EMERGE_OPTS+=("--verbose")
+EMERGE_OPTS=(
+	--complete-graph
+	--keep-going
+	--oneshot
+	--tree
+	--verbose
+)
 
-EMERGE_UPDATE_OPTS=()
-EMERGE_UPDATE_OPTS+=("--update")
-EMERGE_UPDATE_OPTS+=("--changed-use")
+EMERGE_UPDATE_OPTS=(
+	--update
+	--changed-use
+)
 
 ONLY_WORLD=false
 DEBUG=false
