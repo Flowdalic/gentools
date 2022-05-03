@@ -309,3 +309,18 @@ run eclean packages
 if command-exists eclean-kernel; then
 	run eclean-kernel --num 5
 fi
+
+maybe_etckeeper_commit() {
+	if ! command-exists etckeeper; then
+		return
+	fi
+	if etckeeper unclean; then
+		etckeeper commit $@
+	fi
+}
+
+if command-exists portpeek; then
+	maybe_etckeeper_commit "Before portpeek"
+	portpeek --all --fix
+	maybe_etckeeper_commit "After portpeek"
+fi
