@@ -24,6 +24,7 @@ JOBS=""
 LOAD_PERCENTAGE=""
 DEPCLEAN=true
 EMERGE_ONCE=true
+REVDEP_REBUILD=false
 
 do_exit() {
 	exit 1
@@ -63,6 +64,9 @@ while getopts "cdj:l:no:psw" OPTION; do
 	p)
 	    PRETEND=true
 	    ;;
+	r)
+		REVDEP_REBUILD=true
+		;;
 	s)
 		SYNC=true
 		;;
@@ -123,7 +127,9 @@ checkConsistency() {
 		run haskell-updater -- ${EMERGE_OPTS[@]}
 
 	fi
-	run revdep-rebuild -- ${EMERGE_OPTS[@]}
+	if $REVDEP_REBUILD; then
+		run revdep-rebuild -- ${EMERGE_OPTS[@]}
+	fi
 }
 
 run() {
