@@ -83,6 +83,9 @@ if $DEBUG; then
 	set -x
 fi
 
+# Disable iwdevtools, if installed, for update-system runs.
+export IWDT_ALL=n
+
 CORES=$(nproc)
 
 if $BE_ULTRA_NICE || [[ -n "${LOAD_PERCENTAGE}" ]]; then
