@@ -333,6 +333,6 @@ if command-exists portpeek; then
 	# Portpeek would remove entries from package.env if the package is
 	# not installed. However users often want to keep those
 	# package.env entries, e.g., for package testing purposes.
-	portpeek --keyword --mask --unmask --fix
+	portpeek --no-color --keyword --mask --unmask --fix
 	maybe_etckeeper_commit "After portpeek"
 fi
