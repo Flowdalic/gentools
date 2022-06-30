@@ -25,6 +25,7 @@ LOAD_PERCENTAGE=""
 DEPCLEAN=true
 EMERGE_ONCE=true
 REVDEP_REBUILD=false
+THOROUGH=false
 
 do_exit() {
 	exit 1
@@ -39,7 +40,7 @@ command-exists() {
 
 trap do_exit SIGINT
 
-while getopts "cdj:l:no:psw" OPTION; do
+while getopts "cdj:l:no:pstw" OPTION; do
     case $OPTION in
 	c)
 		DEPCLEAN=false
@@ -69,6 +70,9 @@ while getopts "cdj:l:no:psw" OPTION; do
 		;;
 	s)
 		SYNC=true
+		;;
+	t)
+		THOROUGH=true
 		;;
 	w)
 	    ONLY_WORLD=true
@@ -277,7 +281,9 @@ run glsa-check -f affected || exit 1
 
 $ONLY_WORLD && exit
 
-checkConsistency
+if $THOROUGH; then
+	checkConsistency
+fi
 
 # Note that eix will return an non-zero exit code if no package was
 # found, hence we add "|| true".
