@@ -94,7 +94,7 @@ for I in $(seq 1 ${WAIT_NETWORK_SECS}); do
 		echoerr "Network not online after ${WAIT_NETWORK_SECS} seconds"
 		exit 2
 	fi
-	if ping -c 1 -W 0.1 ${PING_HOST} &> /dev/null; then
+	if ping -c 1 ${PING_HOST} &> /dev/null; then
 		# Network is available and online.
 		break
 	fi
