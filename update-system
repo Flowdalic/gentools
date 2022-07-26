@@ -91,8 +91,13 @@ WAIT_NETWORK_SECS=180
 PING_HOST=gentoo.org
 for I in $(seq 1 ${WAIT_NETWORK_SECS}); do
 	if [[ ${I} -eq ${WAIT_NETWORK_SECS} ]]; then
-		echoerr "Network not online after ${WAIT_NETWORK_SECS} seconds"
-		exit 2
+		# Last ping without stderr redirection.
+		if ping -c 1 ${PING_HOST} > /dev/null; then
+			break
+		else
+			echoerr "Network not online after ${WAIT_NETWORK_SECS} seconds"
+			exit 2
+		fi
 	fi
 	if ping -c 1 ${PING_HOST} &> /dev/null; then
 		# Network is available and online.
