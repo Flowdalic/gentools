@@ -23,7 +23,6 @@ BE_ULTRA_NICE=false
 JOBS=""
 LOAD_PERCENTAGE=""
 DEPCLEAN=true
-EMERGE_ONCE=true
 REVDEP_REBUILD=false
 THOROUGH=false
 
@@ -40,7 +39,7 @@ command-exists() {
 
 trap do_exit SIGINT
 
-while getopts "cdj:l:no:pstw" OPTION; do
+while getopts "cdj:l:n:pstw" OPTION; do
     case $OPTION in
 	c)
 		DEPCLEAN=false
@@ -57,10 +56,6 @@ while getopts "cdj:l:no:pstw" OPTION; do
 		;;
 	n)
 		BE_ULTRA_NICE=true
-		;;
-	o)
-		EMERGE_ONCE=${OPTARG}
-		# TODO: Check if OPTARG is true/false.
 		;;
 	p)
 	    PRETEND=true
@@ -135,16 +130,6 @@ fi
 
 EMERGE_OPTS+=("--jobs=${JOBS}")
 
-printUpgradeablePackages() {
-		cat <<EOF
-The following ${1} packages where found:
---------------------------------------------
-$(printf '%s\n' "${UPGRADEABLE_PACKAGES[@]}")
---------------------------------------------
-Attempting to update those packages
-EOF
-}
-
 checkConsistency() {
 	if command-exists perl-cleaner; then
 		run perl-cleaner --all
@@ -201,51 +186,38 @@ determineObsoletePackages() {
 	done
 }
 
-initPackagesArrays() {
-	UPGRADEABLE_PACKAGES=()
-	NON_UPGRADEABLE_PACKAGES=()
+upgradePackages() {
+	local packageCount=${#UPGRADEABLE_PACKAGES[@]}
+	if [[ ${packageCount} -gt 0 ]]; then
+		cat <<EOF
+The following ${packageCount} packages where found:
+--------------------------------------------
+$(printf '%s\n' "${UPGRADEABLE_PACKAGES[@]}")
+--------------------------------------------
+Attempting to update those packages
+EOF
+	fi
+
+	if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] || $PRETEND; then
+		return
+	fi
+
+	if run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}; then
+		return
+	fi
+
+	# TODO: emerge packages individually
+	local p
+	for p in ${UPGRADEABLE_PACKAGES[@]} ; do
+		echo "Now trying to update $p"
+		eix -I -e $p
+		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} $p
+	done
+
 }
 
-initPackagesArrays
-
-# First try update all packages that become obsolete since this also
-# means that some other packages will possibly be updated because of
-# rebuilds, which may also include packages that would have been
-# updated at a later stage anyways. We therefore prevent emerging the
-# same package twice.
-if ! $ONLY_WORLD; then
-	echo "Searching for obsolete packages"
-	determineObsoletePackages
-
-	if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
-		echo "No obsolete packages packages found"
-	elif ! ${EMERGE_ONCE}; then
-		printUpgradeablePackages obsolete
-		echo "Packages that became obsolete found."
-		echo "Running emerge…"
-		if $PRETEND; then
-			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]} || exit 1
-		else
-			run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
-
-			if [[ ${?} -ne 0 ]]; then
-				echo "Still found some more obsolete packages."
-				echo "Switching to single emerge mode…"
-
-				determineObsoletePackages
-				printUpgradeablePackages obsolete
-
-				for p in ${UPGRADEABLE_PACKAGES[@]} ; do
-					echo "Now trying to update $p"
-					eix -I -e $p
-					run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} $p
-				done
-			fi
-		fi
-
-		initPackagesArrays
-	fi
-fi
+UPGRADEABLE_PACKAGES=()
+NON_UPGRADEABLE_PACKAGES=()
 
 # Then proceed with all world packages that have no fetch restrictions
 # but updates
@@ -267,32 +239,35 @@ for WORLD_PACKAGE in ${WORLD_PACKAGES}; do
 		NON_UPGRADEABLE_PACKAGES+=("${WORLD_PACKAGE}")
 	fi
 done
+upgradePackages
 
-if $EMERGE_ONCE; then
-	PACKAGE_KIND="world/obsolete"
-else
-	PACKAGE_KIND="world"
-fi
+# First try update all packages that become obsolete since this also
+# means that some other packages will possibly be updated because of
+# rebuilds, which may also include packages that would have been
+# updated at a later stage anyways. We therefore prevent emerging the
+# same package twice.
+if ! $ONLY_WORLD; then
+	echo "Searching for obsolete packages"
+	UPGRADEABLE_PACKAGES=()
+	determineObsoletePackages
 
-if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
-    echo "No upgradeable ${PACKAGE_KIND} packages"
-else
-	printUpgradeablePackages "${PACKAGE_KIND}"
-    if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
+	if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
+		echo "No obsolete packages packages found"
+	else
+		echo "Packages that became obsolete found."
+		upgradePackages
 	fi
 fi
 
 # Reiterate over UPGRADEABLE_PACKAGES and see if they got updated. Any
 # packages that did not get updates are attempted to update again
 # without emerge's --update and --changed-use option.
+if false; then
 initPackagesArrays
 determineObsoletePackages
 if [[ ${#UPGRADEABLE_PACKAGES[@]} -ne 0 ]] ; then
 	printUpgradeablePackages "oneshot"
-	if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
-	fi
+fi
 fi
 
 # Update all glsa affected packages
