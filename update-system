@@ -336,6 +336,8 @@ if $DEPCLEAN; then
 	run emerge --depclean \
 		${EXCLUDE_ARG}
 	set -e
+
+	run emerge --prune "${EXCLUDE_ATOMS[@]}"
 fi
 
 run eclean distfiles
