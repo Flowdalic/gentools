@@ -320,6 +320,25 @@ if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
 	done
 fi
 
+readonly STATEDIR=/var/lib/update-system
+readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
+
+DO_WORLD_UPDATE=false
+CURRENT_YEAR_MONTH=$(date +%Y-%m)
+if [[ -f "${LAST_WORLD_UPDATE_FILE}" ]]; then
+	LAST_WORLD_UPDATE=$(<"${LAST_WORLD_UPDATE_FILE}")
+	if [[ "${CURRENT_YEAR_MONTH}" != "${LAST_WORLD_UPDATE}" ]]; then
+		DO_WORLD_UPDATE=true
+	fi
+else
+	DO_WORLD_UPDATE=true
+fi
+
+if $DO_WORLD_UPDATE; then
+	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world
+	echo "${CURRENT_YEAR_MONTH}" > "${LAST_WORLD_UPDATE_FILE}"
+fi
+
 if $DEPCLEAN; then
 	EXCLUDE_ATOMS=(
 		sys-kernel/gentoo-kernel
