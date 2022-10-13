@@ -335,6 +335,7 @@ else
 fi
 
 if $DO_WORLD_UPDATE; then
+	echo "Performing monthly world update"
 	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world
 	echo "${CURRENT_YEAR_MONTH}" > "${LAST_WORLD_UPDATE_FILE}"
 fi
