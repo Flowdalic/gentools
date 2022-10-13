@@ -12,7 +12,6 @@ EMERGE_OPTS=(
 EMERGE_UPDATE_OPTS=(
 	--update
 	--changed-use
-	--complete-graph
 )
 
 ONLY_WORLD=false
