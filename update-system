@@ -323,11 +323,15 @@ fi
 readonly STATEDIR=/var/lib/update-system
 readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 
+declare -ri SECONDS_PER_DAY=86400
+declare -ri WORLD_UPDATE_EVERY_DAYS=45
+
 DO_WORLD_UPDATE=false
-CURRENT_YEAR_MONTH=$(date +%Y-%m)
+declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
 if [[ -f "${LAST_WORLD_UPDATE_FILE}" ]]; then
-	LAST_WORLD_UPDATE=$(<"${LAST_WORLD_UPDATE_FILE}")
-	if [[ "${CURRENT_YEAR_MONTH}" != "${LAST_WORLD_UPDATE}" ]]; then
+	declare -ri LAST_WORLD_UPDATE=$(<"${LAST_WORLD_UPDATE_FILE}")
+	declare -ri NEXT_WORLD_UPDATE=$(( LAST_WORLD_UPDATE + WORLD_UPDATE_EVERY_DAYS ))
+	if [[ "${CURRENT_DAY_SINCE_EPOCH}" -gt "${NEXT_WORLD_UPDATE}" ]]; then
 		DO_WORLD_UPDATE=true
 	fi
 else
@@ -337,7 +341,7 @@ fi
 if $DO_WORLD_UPDATE; then
 	echo "Performing monthly world update"
 	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world
-	echo "${CURRENT_YEAR_MONTH}" > "${LAST_WORLD_UPDATE_FILE}"
+	echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
 fi
 
 if $DEPCLEAN; then
