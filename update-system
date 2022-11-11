@@ -136,16 +136,6 @@ Attempting to update those packages
 EOF
 }
 
-checkConsistency() {
-	if command-exists perl-cleaner; then
-		run perl-cleaner --all
-	fi
-
-	if command-exists haskell-updater; then
-		run haskell-updater -- ${EMERGE_OPTS[@]}
-	fi
-}
-
 run() {
 	runCommand=()
 	if $BE_ULTRA_NICE; then
@@ -288,7 +278,13 @@ run glsa-check -f affected || exit 1
 
 $ONLY_WORLD && exit
 
-checkConsistency
+if command-exists perl-cleaner; then
+	run perl-cleaner --all
+fi
+
+if command-exists haskell-updater; then
+	run haskell-updater -- ${EMERGE_OPTS[@]}
+fi
 
 # Note that eix will return an non-zero exit code if no package was
 # found, hence we add "|| true".
