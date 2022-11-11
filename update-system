@@ -147,7 +147,6 @@ checkConsistency() {
 
 	if command-exists haskell-updater; then
 		run haskell-updater -- ${EMERGE_OPTS[@]}
-
 	fi
 	if $REVDEP_REBUILD; then
 		run revdep-rebuild -- ${EMERGE_OPTS[@]}
