@@ -321,7 +321,7 @@ else
 fi
 
 if $DO_WORLD_UPDATE; then
-	echo "Performing monthly world update"
+	echo "Performing regular world update (every ${WORLD_UPDATE_EVERY_DAYS} days)"
 	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world
 	echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
 fi
