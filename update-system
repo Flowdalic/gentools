@@ -306,7 +306,7 @@ readonly STATEDIR=/var/lib/update-system
 readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 
 declare -ri SECONDS_PER_DAY=86400
-declare -ri WORLD_UPDATE_EVERY_DAYS=45
+declare -ri WORLD_UPDATE_EVERY_DAYS=57
 
 DO_WORLD_UPDATE=false
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
