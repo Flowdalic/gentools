@@ -37,6 +37,13 @@ command-exists() {
 
 trap do_exit SIGINT
 
+declare -i WORLD_UPDATE_EVERY_DAYS=51
+
+GENTOOLS_CONFIG_FILE="/etc/gentools/gentools.config"
+if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
+	source "${GENTOOLS_CONFIG_FILE}"
+fi
+
 while getopts "cdj:l:no:psw" OPTION; do
     case $OPTION in
 	c)
@@ -318,7 +325,6 @@ readonly STATEDIR=/var/lib/update-system
 readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 
 declare -ri SECONDS_PER_DAY=86400
-declare -ri WORLD_UPDATE_EVERY_DAYS=51
 
 DO_WORLD_UPDATE=false
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
