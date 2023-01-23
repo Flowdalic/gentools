@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# merge="dispatch-conf-ediff '%s' '%s' '%s'"
+OUTPUT_FILE="${1}"
+CURRENT_CONF_FILE="${2}"
+NEW_DEFAULT_CONF_FILE="${3}"
+
+CURRENT_CONF_FILE_NAME=$(basename "${CURRENT_CONF_FILE}")
+TEMP_DIR=$(mktemp -d ${CURRENT_CONF_FILE_NAME}-MERGE.XXXXXX)
+
+cleanup() {
+	rm -rf "${TEMP_DIR}"
+}
+trap cleanup exit
+
+TEMP_FILE="${TEMP_DIR}/${CURRENT_CONF_FILE_NAME}-current-merge-result"
+
+cp "${CURRENT_CONF_FILE}" "${TEMP_FILE}"
+
+emacs --no-window-system --eval "(ediff-files \"${TEMP_FILE}\" \"${NEW_DEFAULT_CONF_FILE}\")"
+
+mv "${TEMP_FILE}" "${OUTPUT_FILE}"
