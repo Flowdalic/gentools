@@ -117,6 +117,18 @@ if $BE_ULTRA_NICE || [[ -n "${LOAD_PERCENTAGE}" ]]; then
 		MAKE_JOBS="${MAKE_LOAD%.*}"
 	fi
 
+	# Limit the number of jobs also based on the available
+	# memory. Assumes one job per GiB memory available, scaled via
+	# LOAD_PERCENTAGE.
+	MEM_GIB=$(LANG=C free -g|awk '/^Mem:/{print $2}')
+	MEM_GIB_PERCENTAGE=$(echo "${MEM_GIB} * ${LOAD_PERCENTAGE}" | bc)
+	MEM_GIB_PERCENTAGE_INTEGER="${MEM_GIB_PERCENTAGE%.*}"
+	if [[ "${MEM_GIB_PERCENTAGE_INTEGER}" -lt 1 ]]; then
+		MAKE_JOBS="1"
+	elif [[  "${MEM_GIB_PERCENTAGE_INTEGER}" -lt "${MAKE_JOBS}" ]]; then
+		MAKE_JOBS="${MEM_GIB_PERCENTAGE_INTEGER}"
+	fi
+
 	export MAKEOPTS="--jobs=${MAKE_JOBS} --load-average=${MAKE_LOAD}"
 fi
 
