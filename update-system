@@ -297,14 +297,6 @@ run glsa-check -f affected || exit 1
 
 $ONLY_WORLD && exit
 
-if command-exists perl-cleaner; then
-	run perl-cleaner --all
-fi
-
-if command-exists haskell-updater; then
-	run haskell-updater -- ${EMERGE_OPTS[@]}
-fi
-
 # Note that eix will return an non-zero exit code if no package was
 # found, hence we add "|| true".
 RESTRICT_FETCH_PACKAGES=$(eix -I -u --world-file --only-names --restrict-fetch || true)
@@ -330,18 +322,33 @@ DO_WORLD_UPDATE=false
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
 if [[ -f "${LAST_WORLD_UPDATE_FILE}" ]]; then
 	declare -ri LAST_WORLD_UPDATE=$(<"${LAST_WORLD_UPDATE_FILE}")
-	declare -ri NEXT_WORLD_UPDATE=$(( LAST_WORLD_UPDATE + WORLD_UPDATE_EVERY_DAYS ))
-	if [[ "${CURRENT_DAY_SINCE_EPOCH}" -gt "${NEXT_WORLD_UPDATE}" ]]; then
-		DO_WORLD_UPDATE=true
+	declare -ri LAST_WORLD_UPDATE_DAYS_AGO=$(( CURRENT_DAY_SINCE_EPOCH - LAST_WORLD_UPDATE ))
+
+	if (( LAST_WORLD_UPDATE_DAYS_AGO > WORLD_UPDATE_EVERY_DAYS )); then
+		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, greater than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
+		DO_WORLD_UDATE=true
+	else
+		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, lower or equal than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
 	fi
 else
 	DO_WORLD_UPDATE=true
 fi
 
 if $DO_WORLD_UPDATE; then
-	echo "Performing regular world update (every ${WORLD_UPDATE_EVERY_DAYS} days)"
-	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world
-	echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
+	echo "Performing regular world update"
+	if run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world; then
+		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
+	else
+		>&2 echo "ERROR: World update failed!"
+	fi
+fi
+
+if command-exists perl-cleaner; then
+	run perl-cleaner --all
+fi
+
+if command-exists haskell-updater; then
+	run haskell-updater -- ${EMERGE_OPTS[@]}
 fi
 
 if $DEPCLEAN; then
