@@ -39,7 +39,7 @@ trap do_exit SIGINT
 
 declare -i WORLD_UPDATE_EVERY_DAYS=51
 
-GENTOOLS_CONFIG_FILE="/etc/gentools/gentools.config"
+GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
 if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
 	source "${GENTOOLS_CONFIG_FILE}"
 fi
