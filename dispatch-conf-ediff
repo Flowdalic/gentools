@@ -23,7 +23,7 @@ EMACS_CMD="emacsclient"
 # https://stackoverflow.com/a/49414422/194894
 if ! emacsclient -a false -e 't' &>/dev/null; then
 	# emacs server is not running
-	EMACS_CMD="emacs"
+	EMACS_CMD="emacs --quick"
 fi
 
 EMACS_ARGS=()
