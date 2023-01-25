@@ -26,10 +26,6 @@ if ! emacsclient -a false -e 't' &>/dev/null; then
 	EMACS_CMD="emacs"
 fi
 
-TEMP_FILE="${TEMP_DIR}/${CURRENT_CONF_FILE_NAME}-current-merge-result"
-
-cp "${CURRENT_CONF_FILE}" "${TEMP_FILE}"
-
 EMACS_ARGS=()
 if ! $GRAPHICAL_SESSION; then
 	# Use -nw, as it is understood by both emacs and
@@ -39,6 +35,8 @@ if ! $GRAPHICAL_SESSION; then
 	EMACS_ARGS+=( -nw )
 fi
 
+TEMP_FILE="${TEMP_DIR}/${CURRENT_CONF_FILE_NAME}-current-merge-result"
+cp "${CURRENT_CONF_FILE}" "${TEMP_FILE}"
 
 # https://emacs.stackexchange.com/a/3623/23
 ${EMACS_CMD} \
