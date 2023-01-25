@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PORTAGE_ELOG_SYSTEM="… custom:warn,error save"
+# PORTAGE_ELOG_COMMAND="/usr/libexec/sendxmpp-elog \${PACKAGE} \${LOGFILE}"
+# Note that the dollar signs need to be escaped, i.e., \$, in the line above.
+if (( $# != 2 )); then
+	2>&1 echo "Must provide exactly two arguments: <package> <logfile>"
+	exit 1
+fi
+
+PACKAGE="${1}"
+LOGFILE="${2}"
+
+if [[ ! -f "${LOGFILE}" ]]; then
+	2>&1 echo "LOGFILE \"${LOGFILE}\" does not exist or is not a file"
+	exit 2
+fi
+
+CREDFILE="/etc/gentools/sendxmpp-credentials"
+
+source "/etc/gentools/sendxmpp.config"
+
+if [[ ! -v RECIPIENT ]]; then
+	>&2 echo "RECIPIENT not configured"
+	exit 1
+fi
+
+{
+	echo "${HOSTNAME}: elog messages for ${PACKAGE}"
+	cat "${LOGFILE}"
+} | sendxmpp send \
+		--credfile "${CREDFILE}" \
+		--recipient "${RECIPIENT}" \
+		--message -
