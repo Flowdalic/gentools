@@ -14,11 +14,35 @@ cleanup() {
 }
 trap cleanup exit
 
+GRAPHICAL_SESSION=false
+if [[ -v DISPLAY ]]; then
+	GRAPHICAL_SESSION=true
+fi
+
+EMACS_CMD="emacsclient"
+# https://stackoverflow.com/a/49414422/194894
+if ! emacsclient -a false -e 't' &>/dev/null; then
+	# emacs server is not running
+	EMACS_CMD="emacs"
+fi
+
 TEMP_FILE="${TEMP_DIR}/${CURRENT_CONF_FILE_NAME}-current-merge-result"
 
 cp "${CURRENT_CONF_FILE}" "${TEMP_FILE}"
 
+EMACS_ARGS=()
+if ! $GRAPHICAL_SESSION; then
+	# Use -nw, as it is understood by both emacs and
+	# emacsclient. emacs' alternative long option is
+	# --no-window-system and emascclient's alternative long option is
+	# --tty. :(
+	EMACS_ARGS+=( -nw )
+fi
+
+
 # https://emacs.stackexchange.com/a/3623/23
-emacs --no-window-system --eval "(ediff-files \"${TEMP_FILE}\" \"${NEW_DEFAULT_CONF_FILE}\")"
+${EMACS_CMD} \
+	${EMACS_ARGS[@]} \
+	--eval "(ediff-files \"${TEMP_FILE}\" \"${NEW_DEFAULT_CONF_FILE}\")"
 
 mv "${TEMP_FILE}" "${OUTPUT_FILE}"
