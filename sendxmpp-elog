@@ -17,7 +17,7 @@ if [[ ! -f "${LOGFILE}" ]]; then
 	exit 2
 fi
 
-CREDFILE="/etc/gentools/sendxmpp-credentials"
+CREDFILE="/etc/gentools/sendxmpp.credentials"
 
 source "/etc/gentools/sendxmpp.config"
 
