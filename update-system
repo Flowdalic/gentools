@@ -147,7 +147,7 @@ EMERGE_OPTS+=("--jobs=${JOBS}")
 
 printUpgradeablePackages() {
 		cat <<EOF
-The following ${1} packages where found:
+The following ${#UPGRADEABLE_PACKAGES[@]} outdated packages (${1}) where found:
 --------------------------------------------
 $(printf '%s\n' "${UPGRADEABLE_PACKAGES[@]}")
 --------------------------------------------
