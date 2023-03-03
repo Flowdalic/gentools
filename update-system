@@ -326,7 +326,7 @@ if [[ -f "${LAST_WORLD_UPDATE_FILE}" ]]; then
 
 	if (( LAST_WORLD_UPDATE_DAYS_AGO > WORLD_UPDATE_EVERY_DAYS )); then
 		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, greater than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
-		DO_WORLD_UDATE=true
+		DO_WORLD_UPDATE=true
 	else
 		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, lower or equal than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
 	fi
