@@ -173,6 +173,7 @@ run() {
 
 if $SYNC; then
 	run emerge --sync
+	run eix-remote update
 fi
 
 determineObsoletePackages() {
