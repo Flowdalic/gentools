@@ -353,7 +353,10 @@ if command-exists haskell-updater; then
 fi
 
 if command-exists eclean-kernel; then
-	run eclean-kernel --num 5
+	(
+		export ECLEAN_KERNEL_PRESERVED_SET=true
+		run eclean-kernel --num 5
+	)
 fi
 
 if $DEPCLEAN; then
