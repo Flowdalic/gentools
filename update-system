@@ -352,6 +352,10 @@ if command-exists haskell-updater; then
 	run haskell-updater -- ${EMERGE_OPTS[@]}
 fi
 
+if command-exists eclean-kernel; then
+	run eclean-kernel --num 5
+fi
+
 if $DEPCLEAN; then
 	EXCLUDE_ATOMS=(
 		sys-kernel/gentoo-kernel
@@ -373,10 +377,6 @@ fi
 
 run eclean distfiles
 run eclean packages
-
-if command-exists eclean-kernel; then
-	run eclean-kernel --num 5
-fi
 
 maybe_etckeeper_commit() {
 	if ! command-exists etckeeper; then
