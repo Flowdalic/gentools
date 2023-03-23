@@ -360,22 +360,9 @@ if command-exists eclean-kernel; then
 fi
 
 if $DEPCLEAN; then
-	EXCLUDE_ATOMS=(
-		sys-kernel/gentoo-kernel
-		sys-kernel/gentoo-kernel-bin
-	)
-
-	EXCLUDE_ARG=""
-	for EXCLUDE_ATOM in "${EXCLUDE_ATOMS[@]}"; do
-		EXCLUDE_ARG+="--exclude ${EXCLUDE_ATOM} "
-	done
-	
 	set +e
-	run emerge --depclean \
-		${EXCLUDE_ARG}
+	run emerge --depclean
 	set -e
-
-	run emerge --prune "${EXCLUDE_ATOMS[@]}"
 fi
 
 run eclean distfiles
