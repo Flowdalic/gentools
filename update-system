@@ -359,10 +359,24 @@ if command-exists eclean-kernel; then
 	)
 fi
 
-if $DEPCLEAN; then
+maybe_depclean() {
+	local -r DEPCLEAN_INHIBITED_UNTIL_FILE=/etc/gentools/depclean-inhibited
+	if [[ -f "${DEPCLEAN_INHIBITED_UNTIL_FILE}" ]]; then
+		if [[ $(( $(date +"%s") - $(stat -c "%Y" "${DEPCLEAN_INHIBITED_UNTIL_FILE}") )) -gt 1814400 ]]; then
+		   echo "${DEPCLEAN_INHIBITED_UNTIL_FILE} is more than 21 days old, removing"
+		   rm "${DEPCLEAN_INHIBITED_UNTIL_FILE}"
+		fi
+		echo "${DEPCLEAN_INHIBITED_UNTIL_FILE} found, not cleaning dependencies"
+		return
+	fi
+
 	set +e
 	run emerge --depclean
 	set -e
+}
+
+if $DEPCLEAN; then
+	maybe_depclean
 fi
 
 run eclean distfiles
