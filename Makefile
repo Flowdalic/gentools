@@ -16,7 +16,7 @@ install:
 	install update-system.service update-system.timer $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
 
 	install -d $(TARGET_TMPFILES_DIR)
-	install update-system.tmpfiles.conf $(TARGET_TMPFILES_DIR)/update-system.conf
+	install --mode=644 update-system.tmpfiles.conf $(TARGET_TMPFILES_DIR)/update-system.conf
 
 	install -d $(TARGET_LIBEXEC_DIR)
 	install dispatch-conf-ediff $(TARGET_LIBEXEC_DIR)
