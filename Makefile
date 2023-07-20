@@ -1,11 +1,12 @@
-SYSTEMD_UNIT_DIR ?= /lib/systemd/system
+SYSTEMD_SYSTEM_UNIT_DIR ?= /lib/systemd/system
 TMPFILES_DIR ?= /usr/lib/tmpfiles.d
 
 TARGET := $(DESTDIR)/$(PREFIX)
 TARGET_SBIN := $(TARGET)/usr/sbin
-TARGET_SYSTEMD_UNIT_DIR := $(TARGET)/$(SYSTEMD_UNIT_DIR)
-TARGET_TMPFILES_DIR := $(TARGET)/$(TMPFILES_DIR)
 TARGET_LIBEXEC_DIR := $(TARGET)/usr/libexec
+# Unprefixed targets.
+TARGET_SYSTEMD_UNIT_DIR := $(DESTDIR)/$(SYSTEMD_UNIT_DIR)
+TARGET_TMPFILES_DIR := $(DESTDIR)/$(TMPFILES_DIR)
 
 install:
 	install -d $(TARGET_SBIN)
