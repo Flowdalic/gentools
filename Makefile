@@ -1,4 +1,4 @@
-SYSTEMD_SYSTEM_UNIT_DIR ?= /lib/systemd/system
+SYSTEMD_SYSTEM_UNIT_DIR ?= /usr/lib/systemd/system
 TMPFILES_DIR ?= /usr/lib/tmpfiles.d
 
 TARGET := $(DESTDIR)/$(PREFIX)
