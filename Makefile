@@ -5,15 +5,15 @@ TARGET := $(DESTDIR)/$(PREFIX)
 TARGET_SBIN := $(TARGET)/usr/sbin
 TARGET_LIBEXEC_DIR := $(TARGET)/usr/libexec
 # Unprefixed targets.
-TARGET_SYSTEMD_UNIT_DIR := $(DESTDIR)/$(SYSTEMD_UNIT_DIR)
+TARGET_SYSTEMD_SYSTEM_UNIT_DIR := $(DESTDIR)/$(SYSTEMD_SYSTEM_UNIT_DIR)
 TARGET_TMPFILES_DIR := $(DESTDIR)/$(TMPFILES_DIR)
 
 install:
 	install -d $(TARGET_SBIN)
 	install update-system $(TARGET_SBIN)
 
-	install -d $(TARGET_SYSTEMD_UNIT_DIR)
-	install update-system.service update-system.timer $(TARGET_SYSTEMD_UNIT_DIR)
+	install -d $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
+	install update-system.service update-system.timer $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
 
 	install -d $(TARGET_TMPFILES_DIR)
 	install update-system.tmpfiles.conf $(TARGET_TMPFILES_DIR)/update-system.conf
