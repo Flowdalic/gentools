@@ -37,13 +37,6 @@ command-exists() {
 
 trap do_exit SIGINT
 
-declare -i WORLD_UPDATE_EVERY_DAYS=51
-
-GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
-if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
-	source "${GENTOOLS_CONFIG_FILE}"
-fi
-
 while getopts "cdj:l:no:psw" OPTION; do
     case $OPTION in
 	c)
@@ -83,6 +76,14 @@ done
 
 if $DEBUG; then
 	set -x
+fi
+
+declare -i WORLD_UPDATE_EVERY_DAYS=51
+ECLEAN_DISTFILES_ARGS=
+
+GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
+if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
+	source "${GENTOOLS_CONFIG_FILE}"
 fi
 
 WAIT_NETWORK_SECS=180
@@ -379,7 +380,7 @@ if $DEPCLEAN; then
 	maybe_depclean
 fi
 
-run eclean distfiles
+run eclean distfiles ${ECLEAN_DISTFILES_ARGS}
 run eclean packages
 
 maybe_etckeeper_commit() {
