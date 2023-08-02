@@ -156,6 +156,8 @@ Attempting to update those packages
 EOF
 }
 
+FAILED_COMMANDS=false
+
 run() {
 	runCommand=()
 	if $BE_ULTRA_NICE; then
@@ -168,8 +170,15 @@ run() {
 	set +e
 	# shellcheck disable=SC2068
 	${runCommand[@]}
+	local exit_status=$?
 	set -e
-	return $?
+
+	if [[ ${exit_status} -gt 0 ]]; then
+		FAILED_COMMANDS=true
+		>&2 echo "ERROR: ${@} return failure status ${exit_status}"
+	fi
+
+	return $exit_status
 }
 
 if $SYNC; then
@@ -289,15 +298,25 @@ determineObsoletePackages
 if [[ ${#UPGRADEABLE_PACKAGES[@]} -ne 0 ]] ; then
 	printUpgradeablePackages "oneshot"
 	if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
+		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit "${EXIT_EMERGE_FAILED}"
 	fi
 fi
 
 # Update all glsa affected packages
 echo "glsa-check: Checking for packages with known vulnerabilities"
-run glsa-check -f affected || exit 1
+if ! run glsa-check -f affected; then
+	exit "${EXIT_GLSA_FIX_FAILED}"
+fi
 
-$ONLY_WORLD && exit
+finish_update_system() {
+	if $FAILED_COMMANDS; then
+		exit "{EXIT_FAILED_COMMANDS}"
+	else
+		exit
+	fi
+}
+
+$ONLY_WORLD && finish_update_system
 
 # Note that eix will return an non-zero exit code if no package was
 # found, hence we add "|| true".
@@ -371,9 +390,7 @@ maybe_depclean() {
 		return
 	fi
 
-	set +e
 	run emerge --depclean
-	set -e
 }
 
 if $DEPCLEAN; then
@@ -400,3 +417,5 @@ if command-exists portpeek; then
 	portpeek --no-color --keyword --mask --unmask --fix
 	maybe_etckeeper_commit "After portpeek"
 fi
+
+finish_update_system
