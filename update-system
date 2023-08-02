@@ -31,6 +31,11 @@ command-exists() {
 	return 1
 }
 
+declare -i EXIT_INVALID_OPT=1
+declare -i EXIT_NO_NETWORK=2
+declare -i EXIT_EMERGE_FAILED=3
+declare -i EXIT_GLSA_FIX_FAILED=4
+declare -i EXIT_FAILED_COMMANDS=5
 
 while getopts "cdj:l:no:psw" OPTION; do
     case $OPTION in
@@ -65,7 +70,7 @@ while getopts "cdj:l:no:psw" OPTION; do
 	    ;;
 	*)
 		echo "Invalid option: ${OPTION}"
-		exit 1
+		exit "${EXIT_INVALID_OPT}"
     esac
 done
 
@@ -90,7 +95,7 @@ for I in $(seq 1 ${WAIT_NETWORK_SECS}); do
 			break
 		else
 			>&2 echo "Network not online after ${WAIT_NETWORK_SECS} seconds"
-			exit 2
+			exit "${EXIT_NO_NETWORK}"
 		fi
 	fi
 	if ping -c 1 ${PING_HOST} &> /dev/null; then
@@ -226,7 +231,7 @@ if ! $ONLY_WORLD; then
 		echo "Packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
-			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]} || exit 1
+			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]}
 		else
 			run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
 
@@ -281,7 +286,7 @@ if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
 else
 	printUpgradeablePackages "${PACKAGE_KIND}"
     if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit 1
+		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]} || exit "${EXIT_EMERGE_FAILED}"
 	fi
 fi
 
