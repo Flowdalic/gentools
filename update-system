@@ -24,10 +24,6 @@ LOAD_PERCENTAGE=""
 DEPCLEAN=true
 EMERGE_ONCE=true
 
-do_exit() {
-	exit 1
-}
-
 command-exists() {
 	if command -v $@ &> /dev/null; then
 		return 0
@@ -35,7 +31,6 @@ command-exists() {
 	return 1
 }
 
-trap do_exit SIGINT
 
 while getopts "cdj:l:no:psw" OPTION; do
     case $OPTION in
