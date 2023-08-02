@@ -79,6 +79,7 @@ if $DEBUG; then
 fi
 
 declare -i WORLD_UPDATE_EVERY_DAYS=51
+declare -i SMART_LIVE_REBUILD_EVERY_DAYS=14
 ECLEAN_DISTFILES_ARGS=
 
 GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
@@ -341,18 +342,31 @@ declare -ri SECONDS_PER_DAY=86400
 
 DO_WORLD_UPDATE=false
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
-if [[ -f "${LAST_WORLD_UPDATE_FILE}" ]]; then
-	declare -ri LAST_WORLD_UPDATE=$(<"${LAST_WORLD_UPDATE_FILE}")
-	declare -ri LAST_WORLD_UPDATE_DAYS_AGO=$(( CURRENT_DAY_SINCE_EPOCH - LAST_WORLD_UPDATE ))
 
-	if (( LAST_WORLD_UPDATE_DAYS_AGO > WORLD_UPDATE_EVERY_DAYS )); then
-		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, greater than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
-		DO_WORLD_UPDATE=true
-	else
-		echo "Last world update ${LAST_WORLD_UPDATE_DAYS_AGO} days ago, lower or equal than threshold of ${WORLD_UPDATE_EVERY_DAYS} days."
+check_last_flag_file() {
+	local -r last_flag_file="${1}"
+	if [[ ! -f "${last_flag_file}" ]]; then
+		echo "${last_flag_file} for ${subject} does not exist"
+		return 0
 	fi
-else
-	DO_WORLD_UPDATE=true
+
+	local -ri perform_every_days="${2}"
+	local -r subject="${3}"
+
+	local -ri last_days=$(<"${last_flag_file}")
+	local -ri last_days_ago=$(( CURRENT_DAY_SINCE_EPOCH - last_days ))
+
+	if (( last_days_ago > perform_every_days )); then
+		echo "Last ${subject} ${last_days_ago} days ago, greater than threshold of ${perform_every_days} days."
+		return 0
+	else
+		echo "Last ${subject} ${last_days_ago} days ago, lower or equal than threshold of ${perform_every_days} days."
+		return 1
+	fi
+}
+
+if check_last_flag_file "${LAST_WORLD_UPDATE_FILE}" "${WORLD_UPDATE_EVERY_DAYS}" "world update"; then
+   DO_WORLD_UPDATE=true
 fi
 
 if $DO_WORLD_UPDATE; then
@@ -373,10 +387,14 @@ if command-exists haskell-updater; then
 fi
 
 if command-exists eclean-kernel; then
-	(
-		export ECLEAN_KERNEL_PRESERVED_SET=true
-		run eclean-kernel --num 5
-	)
+	run eclean-kernel --num 5
+fi
+
+if command-exists smart-live-rebuild; then
+	readonly LAST_SMART_LIVE_REBUILD_FILE="${STATEDIR}/last-smart-live-rebuild"
+	if check_last_flag_file "${LAST_SMART_LIVE_REBUILD_FILE}" "${SMART_LIVE_REBUILD_EVERY_DAYS}" "smart live rebuild"; then
+		run smart-live-rebuild
+	fi
 fi
 
 maybe_depclean() {
