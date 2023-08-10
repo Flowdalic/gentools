@@ -415,7 +415,7 @@ if $DEPCLEAN; then
 	maybe_depclean
 fi
 
-run eclean distfiles ${ECLEAN_DISTFILES_ARGS}
+run eclean ${ECLEAN_DISTFILES_ARGS} distfiles
 run eclean packages
 
 maybe_etckeeper_commit() {
