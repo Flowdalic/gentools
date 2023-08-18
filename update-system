@@ -116,7 +116,7 @@ if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
 		fi
 		sleep 1
 	done
-	exec /usr/bin/systemd-inhibit "$0" "$@"
+	exec /usr/bin/systemd-inhibit "${0}" "${@}"
 fi
 
 
