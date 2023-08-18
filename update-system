@@ -23,6 +23,7 @@ JOBS=""
 LOAD_PERCENTAGE=""
 DEPCLEAN=true
 EMERGE_ONCE=true
+USEPKG=true
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -86,6 +87,38 @@ GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
 if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
 	source "${GENTOOLS_CONFIG_FILE}"
 fi
+
+if $USEPKG; then
+	EMERGE_OPTS+=(
+		--usepkg y
+	)
+fi
+
+if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
+	export UPDATE_SYSTEMD_INHIBITED=true
+
+	# After the system woke up, it may be still in 'sleep' state for a
+	# brief period. This causes sytemd-inhitit to fail with "Failed to
+	# inhibit: The operation inhibition has been requested for is
+	# already running". Therefore, we have to potentially try multiple
+	# times until we can take the sleep inhibit lock. See
+	# https://github.com/systemd/systemd/issues/14045
+	declare -ir WAIT_INHIBITED_SECS=180
+	for I in $(seq 1 ${WAIT_INHIBITED_SECS}); do
+		if [[ ${I} -eq ${WAIT_INHIBITED_SECS} ]]; then
+			>&2 echo "Failed to take inhibit lock after ${I} seconds"
+			exit 1
+		fi
+		# Check if we would be able to take the inhibit lock.
+		if /usr/bin/systemd-inhibit true; then
+			echo "Inhibit locks free after ${I} seconds"
+			break
+		fi
+		sleep 1
+	done
+	exec /usr/bin/systemd-inhibit "$0" "$@"
+fi
+
 
 WAIT_NETWORK_SECS=180
 PING_HOST=gentoo.org
@@ -176,7 +209,7 @@ run() {
 
 	if [[ ${exit_status} -gt 0 ]]; then
 		FAILED_COMMANDS=true
-		>&2 echo "ERROR: ${@} return failure status ${exit_status}"
+		>&2 echo "ERROR: ${*} return failure status ${exit_status}"
 	fi
 
 	return $exit_status
@@ -243,7 +276,7 @@ if ! $ONLY_WORLD; then
 				determineObsoletePackages
 				printUpgradeablePackages obsolete
 
-				for p in ${UPGRADEABLE_PACKAGES[@]} ; do
+				for p in "${UPGRADEABLE_PACKAGES[@]}" ; do
 					echo "Now trying to update $p"
 					eix -I -e $p
 					run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} $p
@@ -311,7 +344,7 @@ fi
 
 finish_update_system() {
 	if $FAILED_COMMANDS; then
-		exit "{EXIT_FAILED_COMMANDS}"
+		exit "${EXIT_FAILED_COMMANDS}"
 	else
 		exit
 	fi
