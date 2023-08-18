@@ -111,7 +111,7 @@ if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
 		fi
 		# Check if we would be able to take the inhibit lock.
 		if /usr/bin/systemd-inhibit true; then
-			echo "Inhibit locks free after ${I} seconds"
+			echo "Inhibit lock free after ${I} seconds"
 			break
 		fi
 		sleep 1
