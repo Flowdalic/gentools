@@ -107,13 +107,14 @@ if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
 	for I in $(seq 1 ${WAIT_INHIBITED_SECS}); do
 		if [[ ${I} -eq ${WAIT_INHIBITED_SECS} ]]; then
 			>&2 echo "Failed to take inhibit lock after ${I} seconds"
-			exit 1
+			exit ${SYSTEMD_INHIBIT_RET}
 		fi
 		# Check if we would be able to take the inhibit lock.
 		if /usr/bin/systemd-inhibit true; then
 			echo "Inhibit lock free after ${I} seconds"
 			break
 		fi
+		SYSTEMD_INHIBIT_RET=$?
 		sleep 1
 	done
 	exec /usr/bin/systemd-inhibit "${0}" "${@}"
