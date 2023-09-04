@@ -382,13 +382,13 @@ declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
 
 check_last_flag_file() {
 	local -r last_flag_file="${1}"
+	local -ri perform_every_days="${2}"
+	local -r subject="${3}"
+
 	if [[ ! -f "${last_flag_file}" ]]; then
 		echo "${last_flag_file} for ${subject} does not exist"
 		return 0
 	fi
-
-	local -ri perform_every_days="${2}"
-	local -r subject="${3}"
 
 	local -ri last_days=$(<"${last_flag_file}")
 	local -ri last_days_ago=$(( CURRENT_DAY_SINCE_EPOCH - last_days ))
