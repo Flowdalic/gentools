@@ -193,7 +193,7 @@ Attempting to update those packages
 EOF
 }
 
-FAILED_COMMANDS=false
+FAILED_COMMANDS=()
 
 run() {
 	runCommand=()
@@ -211,7 +211,7 @@ run() {
 	set -e
 
 	if [[ ${exit_status} -gt 0 ]]; then
-		FAILED_COMMANDS=true
+		FAILED_COMMANDS+=( ${*} )
 		>&2 echo "ERROR: ${*} return failure status ${exit_status}"
 	fi
 
@@ -350,6 +350,10 @@ fi
 
 finish_update_system() {
 	if $FAILED_COMMANDS; then
+		>&2 echo "ERROR: finished, but some commands failed:"
+		IFS="|$IFS"
+		>&2 printf '%s\n' "${FAILED_COMMANDS[*]}"
+		IFS="${IFS:1}"
 		exit "${EXIT_FAILED_COMMANDS}"
 	else
 		exit
