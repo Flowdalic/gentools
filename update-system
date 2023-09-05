@@ -348,11 +348,9 @@ if ! run glsa-check -f affected; then
 fi
 
 finish_update_system() {
-	if $FAILED_COMMANDS; then
+	if [[ $FAILED_COMMANDS ]]; then
 		>&2 echo "ERROR: finished, but some commands failed:"
-		IFS="|$IFS"
 		>&2 printf '%s\n' "${FAILED_COMMANDS[*]}"
-		IFS="${IFS:1}"
 		exit "${EXIT_FAILED_COMMANDS}"
 	else
 		exit
