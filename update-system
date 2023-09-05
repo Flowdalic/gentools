@@ -88,10 +88,9 @@ if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
 	source "${GENTOOLS_CONFIG_FILE}"
 fi
 
+MAYBE_EMERGE_USEPKG_OPT=""
 if $USEPKG; then
-	EMERGE_OPTS+=(
-		--usepkg y
-	)
+	MAYBE_EMERGE_USEPKG_OPT="--usepkg y"
 fi
 
 if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
@@ -273,7 +272,7 @@ if ! $ONLY_WORLD; then
 		if $PRETEND; then
 			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]}
 		else
-			run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
+			run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} ${UPGRADEABLE_PACKAGES[@]}
 
 			if [[ ${?} -ne 0 ]]; then
 				echo "Still found some more obsolete packages."
@@ -285,7 +284,7 @@ if ! $ONLY_WORLD; then
 				for p in "${UPGRADEABLE_PACKAGES[@]}" ; do
 					echo "Now trying to update $p"
 					eix -I -e $p
-					run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} $p
+					run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} $p
 				done
 			fi
 		fi
@@ -326,7 +325,7 @@ if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
 else
 	printUpgradeablePackages "${PACKAGE_KIND}"
     if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
+		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} ${UPGRADEABLE_PACKAGES[@]}
 	fi
 fi
 
@@ -338,7 +337,7 @@ determineObsoletePackages
 if [[ ${#UPGRADEABLE_PACKAGES[@]} -ne 0 ]] ; then
 	printUpgradeablePackages "oneshot"
 	if ! $PRETEND; then
-		run emerge ${EMERGE_OPTS[@]} ${UPGRADEABLE_PACKAGES[@]}
+		run emerge ${EMERGE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} ${UPGRADEABLE_PACKAGES[@]}
 	fi
 fi
 
@@ -414,7 +413,7 @@ fi
 
 if $DO_WORLD_UPDATE; then
 	echo "Performing regular world update"
-	if run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} --deep @world; then
+	if run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world; then
 		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
 	else
 		>&2 echo "ERROR: World update failed!"
@@ -422,7 +421,7 @@ if $DO_WORLD_UPDATE; then
 fi
 
 if command-exists perl-cleaner; then
-	run perl-cleaner --all
+	run perl-cleaner --all -- ${EMERGE_OPTS[@]}
 fi
 
 if command-exists haskell-updater; then
