@@ -13,7 +13,7 @@ install:
 	install update-system $(TARGET_SBIN)
 
 	install -d $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
-	install update-system.service update-system.timer $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
+	install --mode=644 update-system.service update-system.timer $(TARGET_SYSTEMD_SYSTEM_UNIT_DIR)
 
 	install -d $(TARGET_TMPFILES_DIR)
 	install --mode=644 update-system.tmpfiles.conf $(TARGET_TMPFILES_DIR)/update-system.conf
