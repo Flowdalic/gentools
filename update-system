@@ -221,8 +221,22 @@ run() {
 if $SYNC; then
 	run emerge --sync
 
-	# TODO: Only invoke update is /var/cache/eix/remote.eix is not from today.
-	run eix-remote update
+	# Only invoke update is /var/cache/eix/remote.eix is not from today.
+	EIX_REMOTE_UPDATE=true
+	EIX_REMOTE_FILE="/var/cache/eix/remote.eix"
+	if [[ -f ${EIX_REMOTE_FILE} ]]; then
+		EIX_REMOTE_FILE_DATE=$(stat --format=%y "${EIX_REMOTE_FILE}" |cut -d ' ' -f 1)
+		CURRENT_DATE=$(date -I)
+
+		if [[ "${EIX_REMOTE_FILE_DATE}" == "${CURRENT_DATE}" ]]; then
+			echo "${EIX_REMOTE_FILE} is from today, skipping \"eix-remote update\""
+			EIX_REMOTE_UPDATE=false
+		fi
+	fi
+
+	if $EIX_REMOTE_UPDATE; then
+		run eix-remote update
+	fi
 fi
 
 determineObsoletePackages() {
