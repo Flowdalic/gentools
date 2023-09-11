@@ -433,11 +433,11 @@ if $DO_WORLD_UPDATE; then
 fi
 
 if command-exists perl-cleaner; then
-	run perl-cleaner --all -- ${EMERGE_OPTS[@]}
+	run perl-cleaner --all -- --jobs=${JOBS}
 fi
 
 if command-exists haskell-updater; then
-	run haskell-updater -- ${EMERGE_OPTS[@]}
+	run haskell-updater -- --jobs=${JOBS}
 fi
 
 if command-exists eclean-kernel; then
