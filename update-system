@@ -210,8 +210,15 @@ run() {
 	set -e
 
 	if [[ ${exit_status} -gt 0 ]]; then
-		FAILED_COMMANDS+=( ${*} )
-		>&2 echo "ERROR: ${*} return failure status ${exit_status}"
+		local failure_level
+		if [[ -v DO_NOT_RECORD_FAILURE ]]; then
+			failure_level=INFO
+		else
+			FAILED_COMMANDS+=( ${*} )
+			failure_level=ERROR
+		fi
+
+		>&2 echo "${failure_level}: ${*} return failure status ${exit_status}"
 	fi
 
 	# Do not return $exit_status here, as we want commands invoked
@@ -362,12 +369,12 @@ if ! run glsa-check -f affected; then
 fi
 
 finish_update_system() {
-	if [[ $FAILED_COMMANDS ]]; then
+	if [[ ${#FAILED_COMMANDS[@]} -ne 0 ]]; then
 		>&2 echo "ERROR: finished, but some commands failed:"
 		>&2 printf '%s\n' "${FAILED_COMMANDS[*]}"
 		exit "${EXIT_FAILED_COMMANDS}"
 	else
-		exit
+		exit 0
 	fi
 }
 
@@ -460,6 +467,12 @@ maybe_depclean() {
 		fi
 		echo "${DEPCLEAN_INHIBITED_UNTIL_FILE} found, not cleaning dependencies"
 		return
+	fi
+
+	if ! $DO_WORLD_UPDATE; then
+		# If we did not a world update, then do not record --depclean
+		# failures.
+		local -x DO_NOT_RECORD_FAILURE=1
 	fi
 
 	run emerge --depclean
