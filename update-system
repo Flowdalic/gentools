@@ -203,6 +203,8 @@ run() {
 	# shellcheck disable=SC2068
 	runCommand+=(${@})
 
+	RUN_FAILED=false
+
 	set +e
 	# shellcheck disable=SC2068
 	${runCommand[@]}
@@ -210,6 +212,7 @@ run() {
 	set -e
 
 	if [[ ${exit_status} -gt 0 ]]; then
+		RUN_FAILED=true
 		local failure_level
 		if [[ -v DO_NOT_RECORD_FAILURE ]]; then
 			failure_level=INFO
@@ -432,10 +435,10 @@ fi
 
 if $DO_WORLD_UPDATE; then
 	echo "Performing regular world update"
-	if run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world; then
+	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world
+
+	if ! $RUN_FAILED; then
 		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
-	else
-		>&2 echo "ERROR: World update failed!"
 	fi
 fi
 
@@ -454,7 +457,19 @@ fi
 if command-exists smart-live-rebuild; then
 	readonly LAST_SMART_LIVE_REBUILD_FILE="${STATEDIR}/last-smart-live-rebuild"
 	if check_last_flag_file "${LAST_SMART_LIVE_REBUILD_FILE}" "${SMART_LIVE_REBUILD_EVERY_DAYS}" "smart live rebuild"; then
-		run smart-live-rebuild
+		SMART_LIVE_REBUILD_ARGS=(
+			--jobs=${JOBS}
+		)
+
+		if $USEPKG; then
+			SMART_LIVE_REBUILD_ARGS+=(--quickpkg)
+		fi
+
+		run smart-live-rebuild ${SMART_LIVE_REBUILD_ARGS[@]}
+
+		if ! $RUN_FAILED; then
+			echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_SMART_LIVE_REBUILD_FILE}"
+		fi
 	fi
 fi
 
