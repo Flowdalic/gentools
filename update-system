@@ -119,6 +119,7 @@ if [[ -f /usr/bin/systemd-inhibit && ! -v UPDATE_SYSTEMD_INHIBITED ]]; then
 		sleep 1
 	done
 	exec /usr/bin/systemd-inhibit \
+		 --what="shutdown:sleep" \
 		 --who="update-system" \
 		 --why="Prevent system sleep and shutdown during system update" \
 		 "${0}" "${@}"
