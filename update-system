@@ -530,6 +530,16 @@ if command-exists portpeek; then
 	maybe_etckeeper_commit "After portpeek"
 fi
 
+if command-exists systemctl; then
+	while read unit; do
+		UNIT_NEEDS_DAEMON_RELOAD=$(systemctl show ${unit} -P NeedDaemonReload)
+		if [[ "${UNIT_NEEDS_DAEMON_RELOAD}" == "yes" ]]; then
+			systemctl daemon-reload
+			break
+		fi
+	done< <(systemctl list-unit-files | awk '{print $1}' | grep -E '.(service|timer)$')
+fi
+
 if "${RESTART_SERVICES}" && command-exists needrestart; then
 	echo "Invoking needrestart to check for services that need to be restarted"
 	run needrestart -r a
