@@ -537,7 +537,7 @@ if command-exists systemctl; then
 			systemctl daemon-reload
 			break
 		fi
-	done< <(systemctl list-unit-files | awk '{print $1}' | grep -E '.(service|timer)$')
+	done< <(systemctl list-unit-files | awk '{print $1}' | grep -E '[^@].(service|timer)$')
 fi
 
 if "${RESTART_SERVICES}" && command-exists needrestart; then
