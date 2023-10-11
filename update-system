@@ -218,6 +218,8 @@ run() {
 
 	RUN_FAILED=false
 
+	echo ${*}
+
 	set +e
 	# shellcheck disable=SC2068
 	${runCommand[@]}
