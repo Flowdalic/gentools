@@ -26,6 +26,7 @@ DEPCLEAN=true
 EMERGE_ONCE=true
 USEPKG=true
 RESTART_SERVICES=true
+MAYBE_PRETEND=""
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -64,6 +65,7 @@ while getopts "cdj:l:no:pr:sw" OPTION; do
 		;;
 	p)
 	    PRETEND=true
+		MAYBE_PRETEND="--pretend"
 	    ;;
 	s)
 		SYNC=true
@@ -487,7 +489,15 @@ if command-exists haskell-updater; then
 fi
 
 if command-exists eclean-kernel; then
-	run eclean-kernel --num 5
+	ECLEAN_KERNEL_ARGS=(
+		--num 5
+	)
+
+	if $PRETEND; then
+		ECLEAN_KERNEL_ARGS+=(--pretend)
+	fi
+
+	run eclean-kernel ${ECLEAN_KERNEL_ARGS[@]}
 fi
 
 if command-exists smart-live-rebuild; then
@@ -510,6 +520,10 @@ if command-exists smart-live-rebuild; then
 fi
 
 maybe_depclean() {
+	if $PRETEND; then
+		return 0
+	fi
+
 	local -r DEPCLEAN_INHIBITED_UNTIL_FILE=/etc/gentools/depclean-inhibited
 	if [[ -f "${DEPCLEAN_INHIBITED_UNTIL_FILE}" ]]; then
 		if [[ $(( $(date +"%s") - $(stat -c "%Y" "${DEPCLEAN_INHIBITED_UNTIL_FILE}") )) -gt 1814400 ]]; then
@@ -533,8 +547,8 @@ if $DEPCLEAN; then
 	maybe_depclean
 fi
 
-run eclean ${ECLEAN_DISTFILES_ARGS} distfiles
-run eclean packages
+run eclean ${ECLEAN_DISTFILES_ARGS} ${MAYBE_PRETEND} distfiles
+run eclean ${MAYBE_PRETEND} packages
 
 maybe_etckeeper_commit() {
 	if ! command-exists etckeeper; then
