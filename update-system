@@ -388,8 +388,29 @@ fi
 
 finish_update_system() {
 	if [[ ${#FAILED_COMMANDS[@]} -ne 0 ]]; then
-		>&2 echo "ERROR: finished, but some commands failed:"
-		>&2 printf '%s\n' "${FAILED_COMMANDS[*]}"
+		ERROR_MESSAGE_FILE=$(mktemp --tmpdir update-system-error-message.XXXXX)
+		echo "ERROR: update-system on ${HOSTNAME} finished, but some commands failed:" > "${ERROR_MESSAGE_FILE}"
+		printf '%s\n' "${FAILED_COMMANDS[*]}" >> "${ERROR_MESSAGE_FILE}"
+
+		cat "${ERROR_MESSAGE_FILE}" >&2
+
+		CREDFILE="/etc/gentools/sendxmpp.credentials"
+		if command-exists sendxmpp && [[ -r "${CREDFILE}" ]]; then
+			source "/etc/gentools/sendxmpp.config"
+
+			if [[ -v RECIPIENT ]]; then
+				sendxmpp send \
+						 --credfile "${CREDFILE}" \
+						 --recipient "${RECIPIENT}" \
+						 --message - \
+						 < "${ERROR_MESSAGE_FILE}"
+			else
+				>&2 echo "ERROR: RECIPIENT for sendxmpp not configured"
+			fi
+		fi
+
+		rm "${ERROR_MESSAGE_FILE}"
+
 		exit "${EXIT_FAILED_COMMANDS}"
 	else
 		exit 0
