@@ -27,6 +27,7 @@ EMERGE_ONCE=true
 USEPKG=true
 RESTART_SERVICES=true
 MAYBE_PRETEND=""
+UNATTENDED_REBOOTS=false
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -98,6 +99,8 @@ GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
 if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
 	source "${GENTOOLS_CONFIG_FILE}"
 fi
+
+REBOOT=false
 
 MAYBE_EMERGE_USEPKG_OPT=""
 if $USEPKG; then
@@ -389,6 +392,7 @@ if ! run glsa-check -f affected; then
 fi
 
 finish_update_system() {
+	local exit_status
 	if [[ ${#FAILED_COMMANDS[@]} -ne 0 ]]; then
 		ERROR_MESSAGE_FILE=$(mktemp --tmpdir update-system-error-message.XXXXX)
 		echo "ERROR: update-system on ${HOSTNAME} finished, but some commands failed:" > "${ERROR_MESSAGE_FILE}"
@@ -413,10 +417,21 @@ finish_update_system() {
 
 		rm "${ERROR_MESSAGE_FILE}"
 
-		exit "${EXIT_FAILED_COMMANDS}"
+		exit_staus="${EXIT_FAILED_COMMANDS}"
 	else
-		exit 0
+		exit_status=0
 	fi
+
+	if $REBOOT; then
+		if $PRETEND; then
+			echo "PRETEND: Would schedule reboot in 30 seconds"
+		else
+			echo "Scheduling reboot in 30 seconds"
+			systemd-run --on-active=30 systemctl reboot
+		fi
+	fi
+
+	exit "${exit_status}"
 }
 
 $ONLY_WORLD && finish_update_system
@@ -579,8 +594,21 @@ if command-exists systemctl; then
 fi
 
 if "${RESTART_SERVICES}" && command-exists needrestart; then
-	echo "Invoking needrestart to check for services that need to be restarted"
-	run needrestart -r a
+	if $UNATTENDED_REBOOTS; then
+		NEEDRESTART_BATCH_FILE=$(mktemp --tmpdir update-system-needrestart-batch.XXXXX)
+		needrestart -b > "${NEEDRESTART_BATCH_FILE}"
+
+		NEEDRESTART_KSTA=$(sed -n 's/NEEDRESTART-KSTA: \([0-4]\)/\1/p' "${NEEDRESTART_BATCH_FILE}")
+		if [[ "${NEEDRESTART-KSTA}" == 3 ]]; then
+			echo "Needrestart reported pending kernel update and unattended reboots are enabled"
+			REBOOT=true
+		fi
+	fi
+
+	if $REBOOT; then
+		echo "Invoking needrestart to check for services that need to be restarted"
+		run needrestart -r a
+	fi
 fi
 
 finish_update_system
