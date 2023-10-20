@@ -27,7 +27,8 @@ EMERGE_ONCE=true
 USEPKG=true
 RESTART_SERVICES=true
 MAYBE_PRETEND=""
-UNATTENDED_REBOOTS=false
+UNATTENDED_REBOOT=false
+UNATTENDED_REBOOT_AFTER_DAYS=19
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -391,6 +392,8 @@ if ! run glsa-check -f affected; then
 	exit "${EXIT_GLSA_FIX_FAILED}"
 fi
 
+LAST_UNATTENDED_REBOOT_REQUIRED_FILE="${STATEDIR}/last-unattended-reboot-required"
+
 finish_update_system() {
 	local exit_status
 	if [[ ${#FAILED_COMMANDS[@]} -ne 0 ]]; then
@@ -423,6 +426,8 @@ finish_update_system() {
 	fi
 
 	if $REBOOT; then
+		rm "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}"
+
 		if $PRETEND; then
 			echo "PRETEND: Would schedule reboot in 30 seconds"
 		else
@@ -594,14 +599,18 @@ if command-exists systemctl; then
 fi
 
 if "${RESTART_SERVICES}" && command-exists needrestart; then
-	if $UNATTENDED_REBOOTS; then
+	if $UNATTENDED_REBOOT; then
 		NEEDRESTART_BATCH_FILE=$(mktemp --tmpdir update-system-needrestart-batch.XXXXX)
 		needrestart -b > "${NEEDRESTART_BATCH_FILE}"
 
 		NEEDRESTART_KSTA=$(sed -n 's/NEEDRESTART-KSTA: \([0-4]\)/\1/p' "${NEEDRESTART_BATCH_FILE}")
+
 		if [[ "${NEEDRESTART_KSTA}" == 3 ]]; then
-			echo "Needrestart reported pending kernel update and unattended reboots are enabled"
-			REBOOT=true
+			if [[ ! -f  "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}" ]]; then
+				echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}"
+			elif check_last_flag_file "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}" "${UNATTENDED_REBOOT_AFTER_DAYS}" "unattended reboot required"; then
+				REBOOT=true
+			fi
 		fi
 	fi
 
