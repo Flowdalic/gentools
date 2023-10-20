@@ -605,7 +605,7 @@ if "${RESTART_SERVICES}" && command-exists needrestart; then
 		fi
 	fi
 
-	if $REBOOT; then
+	if ! $REBOOT; then
 		echo "Invoking needrestart to check for services that need to be restarted"
 		run needrestart -r a
 	fi
