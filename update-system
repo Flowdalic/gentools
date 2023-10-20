@@ -599,7 +599,7 @@ if "${RESTART_SERVICES}" && command-exists needrestart; then
 		needrestart -b > "${NEEDRESTART_BATCH_FILE}"
 
 		NEEDRESTART_KSTA=$(sed -n 's/NEEDRESTART-KSTA: \([0-4]\)/\1/p' "${NEEDRESTART_BATCH_FILE}")
-		if [[ "${NEEDRESTART-KSTA}" == 3 ]]; then
+		if [[ "${NEEDRESTART_KSTA}" == 3 ]]; then
 			echo "Needrestart reported pending kernel update and unattended reboots are enabled"
 			REBOOT=true
 		fi
