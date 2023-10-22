@@ -602,7 +602,13 @@ fi
 if "${RESTART_SERVICES}" && command-exists needrestart; then
 	if $UNATTENDED_REBOOT; then
 		NEEDRESTART_BATCH_FILE=$(mktemp --tmpdir update-system-needrestart-batch.XXXXX)
+
+		echo "Invoking needrestart in batch mode to check for kernel update"
 		needrestart -b > "${NEEDRESTART_BATCH_FILE}"
+
+		if $DEBUG; then
+			cat "${NEEDRESTART_BATCH_FILE}"
+		fi
 
 		NEEDRESTART_KSTA=$(sed -n 's/NEEDRESTART-KSTA: \([0-4]\)/\1/p' "${NEEDRESTART_BATCH_FILE}")
 
@@ -612,6 +618,8 @@ if "${RESTART_SERVICES}" && command-exists needrestart; then
 			elif check_last_flag_file "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}" "${UNATTENDED_REBOOT_AFTER_DAYS}" "unattended reboot required"; then
 				REBOOT=true
 			fi
+		else
+			"Needrestart reports no kernel update pending"
 		fi
 	fi
 
