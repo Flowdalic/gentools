@@ -392,6 +392,8 @@ if ! run glsa-check -f affected; then
 	exit "${EXIT_GLSA_FIX_FAILED}"
 fi
 
+readonly STATEDIR=/var/lib/update-system
+
 LAST_UNATTENDED_REBOOT_REQUIRED_FILE="${STATEDIR}/last-unattended-reboot-required"
 
 finish_update_system() {
@@ -457,7 +459,6 @@ if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
 	done
 fi
 
-readonly STATEDIR=/var/lib/update-system
 readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 
 declare -ri SECONDS_PER_DAY=86400
