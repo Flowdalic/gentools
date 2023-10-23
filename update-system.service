@@ -13,6 +13,4 @@ IOWeight=10
 MemoryHigh=80%
 MemoryMax=95%
 
-# Work around for https://github.com/vaeth/eix/pull/91
-Environment=HOME=/root
 Environment=NO_COLOR=true
