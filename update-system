@@ -422,7 +422,7 @@ finish_update_system() {
 
 		rm "${ERROR_MESSAGE_FILE}"
 
-		exit_staus="${EXIT_FAILED_COMMANDS}"
+		exit_status="${EXIT_FAILED_COMMANDS}"
 	else
 		exit_status=0
 	fi
