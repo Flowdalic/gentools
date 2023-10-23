@@ -250,7 +250,7 @@ run() {
 }
 
 if $SYNC; then
-	run emerge --sync
+	run emerge --sync --verbose
 
 	# Only invoke update is /var/cache/eix/remote.eix is not from today.
 	EIX_REMOTE_UPDATE=true
