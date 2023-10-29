@@ -401,7 +401,7 @@ finish_update_system() {
 	if [[ ${#FAILED_COMMANDS[@]} -ne 0 ]]; then
 		ERROR_MESSAGE_FILE=$(mktemp --tmpdir update-system-error-message.XXXXX)
 		echo "ERROR: update-system on ${HOSTNAME} finished, but some commands failed:" > "${ERROR_MESSAGE_FILE}"
-		printf '%s\n' "${FAILED_COMMANDS[*]}" >> "${ERROR_MESSAGE_FILE}"
+		printf '%s\n' "${FAILED_COMMANDS[@]}" >> "${ERROR_MESSAGE_FILE}"
 
 		cat "${ERROR_MESSAGE_FILE}" >&2
 
