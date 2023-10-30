@@ -238,7 +238,7 @@ run() {
 		if [[ -v DO_NOT_RECORD_FAILURE ]]; then
 			failure_level=INFO
 		else
-			FAILED_COMMANDS+=( ${*} )
+			FAILED_COMMANDS+=( "${*}" )
 			failure_level=ERROR
 		fi
 
