@@ -619,7 +619,7 @@ if "${RESTART_SERVICES}" && command-exists needrestart; then
 				REBOOT=true
 			fi
 		else
-			"Needrestart reports no kernel update pending"
+			echo "Needrestart reports no kernel update pending"
 		fi
 	fi
 
