@@ -29,6 +29,7 @@ RESTART_SERVICES=true
 MAYBE_PRETEND=""
 UNATTENDED_REBOOT=false
 UNATTENDED_REBOOT_AFTER_DAYS=19
+ECLEAN_KERNEL=true
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -509,7 +510,7 @@ if command-exists haskell-updater; then
 	run haskell-updater -- --jobs=${JOBS}
 fi
 
-if command-exists eclean-kernel; then
+if command-exists eclean-kernel && $ECLEAN_KERNEL; then
 	ECLEAN_KERNEL_ARGS=(
 		--num 5
 	)
@@ -526,6 +527,7 @@ if command-exists smart-live-rebuild; then
 	if check_last_flag_file "${LAST_SMART_LIVE_REBUILD_FILE}" "${SMART_LIVE_REBUILD_EVERY_DAYS}" "smart live rebuild"; then
 		SMART_LIVE_REBUILD_ARGS=(
 			--jobs=${JOBS}
+			--filter-packages=!app-doc/eclass-manpages
 		)
 
 		if $USEPKG; then
