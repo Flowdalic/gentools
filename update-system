@@ -198,9 +198,13 @@ fi
 
 if [[ -z ${JOBS} ]]; then
 	JOBS=$((CORES / 4))
+	if [[ ${JOBS} -gt 1 ]]; then
+		EMERGE_OPTS+=("--jobs=${JOBS}")
+	else
+		JOBS=1
+	fi
 fi
 
-EMERGE_OPTS+=("--jobs=${JOBS}")
 
 printUpgradeablePackages() {
 		cat <<EOF
