@@ -158,7 +158,7 @@ for I in $(seq 1 ${WAIT_NETWORK_SECS}); do
 		# Network is available and online.
 		break
 	fi
-	echo "Waiting for network… (${I})"
+	echo "Waiting for network [ping ${PING_HOST}]… (${I})"
 	sleep 1
 done
 
