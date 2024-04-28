@@ -314,10 +314,10 @@ if ! $ONLY_WORLD; then
 	determineObsoletePackages
 
 	if [[ ${#UPGRADEABLE_PACKAGES[@]} -eq 0 ]] ; then
-		echo "No obsolete packages packages found"
+		echo "No obsolete packages found"
 	elif ! ${EMERGE_ONCE}; then
 		printUpgradeablePackages obsolete
-		echo "Packages that became obsolete found."
+		echo "${#UPGRADEABLE_PACKAGES[@]} packages that became obsolete found."
 		echo "Running emerge…"
 		if $PRETEND; then
 			run emerge ${EMERGE_OPTS[@]} -p ${UPGRADEABLE_PACKAGES[@]}
