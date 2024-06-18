@@ -95,6 +95,7 @@ fi
 
 declare -i WORLD_UPDATE_EVERY_DAYS=51
 declare -i SMART_LIVE_REBUILD_EVERY_DAYS=14
+declare -i PRESERVED_REBUILD_EVERY_DAYS=28
 ECLEAN_DISTFILES_ARGS=
 
 GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
@@ -543,6 +544,15 @@ if command-exists smart-live-rebuild; then
 		if ! $RUN_FAILED; then
 			echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_SMART_LIVE_REBUILD_FILE}"
 		fi
+	fi
+fi
+
+readonly LAST_PRESERVED_REBUILD_FILE="${STATEDIR}/last-preserved-rebuild"
+if check_last_flag_file "${LAST_PRESERVED_REBUILD_FILE}" "${PRESERVED_REBUILD_EVERY_DAYS}" "preserved rebuild"; then
+	run emerge ${EMERGE_OPTS[@]} @preserved-rebuild
+
+	if ! $RUN_FAILED; then
+		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_PRESERVED_REBUILD_FILE}"
 	fi
 fi
 
