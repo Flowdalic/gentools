@@ -31,5 +31,5 @@ fi
 	cat "${LOGFILE}"
 } | sendxmpp send \
 		--credfile "${CREDFILE}" \
-		--recipient "${RECIPIENT}" \
-		--message -
+		"${RECIPIENT}" \
+		-
