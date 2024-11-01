@@ -195,6 +195,7 @@ if $BE_ULTRA_NICE || [[ -n "${LOAD_PERCENTAGE}" ]]; then
 	fi
 
 	export MAKEOPTS="--jobs=${MAKE_JOBS} --load-average=${MAKE_LOAD}"
+	echo "Set MAKEOPTS=${MAKEOPTS}"
 fi
 
 if [[ -z ${JOBS} ]]; then
