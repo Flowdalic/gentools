@@ -97,6 +97,7 @@ declare -i WORLD_UPDATE_EVERY_DAYS=51
 declare -i SMART_LIVE_REBUILD_EVERY_DAYS=14
 declare -i PRESERVED_REBUILD_EVERY_DAYS=28
 ECLEAN_DISTFILES_ARGS=
+EXTRA_ECLEAN_KERNEL_ARGS=()
 
 GENTOOLS_CONFIG_FILE="/etc/gentools/update-system.config"
 if [[ -f "${GENTOOLS_CONFIG_FILE}" ]]; then
@@ -525,7 +526,7 @@ if command-exists eclean-kernel && $ECLEAN_KERNEL; then
 		ECLEAN_KERNEL_ARGS+=(--pretend)
 	fi
 
-	run eclean-kernel ${ECLEAN_KERNEL_ARGS[@]}
+	run eclean-kernel ${ECLEAN_KERNEL_ARGS[@]} ${EXTRA_ECLEAN_KERNEL_ARGS[@]}
 fi
 
 if command-exists smart-live-rebuild; then
