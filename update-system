@@ -420,8 +420,8 @@ finish_update_system() {
 			if [[ -v RECIPIENT ]]; then
 				sendxmpp send \
 						 --credfile "${CREDFILE}" \
-						 --recipient "${RECIPIENT}" \
-						 --message - \
+						 "${RECIPIENT}" \
+						 - \
 						 < "${ERROR_MESSAGE_FILE}"
 			else
 				>&2 echo "ERROR: RECIPIENT for sendxmpp not configured"
