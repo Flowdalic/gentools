@@ -541,6 +541,10 @@ if command-exists smart-live-rebuild; then
 			SMART_LIVE_REBUILD_ARGS+=(--quickpkg)
 		fi
 
+		SMART_LIVE_REBUILD_ARGS+=(
+			-- --jobs=${JOBS}
+		)
+
 		run smart-live-rebuild ${SMART_LIVE_REBUILD_ARGS[@]}
 
 		if ! $RUN_FAILED; then
