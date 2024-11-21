@@ -30,6 +30,8 @@ MAYBE_PRETEND=""
 UNATTENDED_REBOOT=false
 UNATTENDED_REBOOT_AFTER_DAYS=19
 ECLEAN_KERNEL=true
+# Not ready yet
+USE_PCLEAN=false
 
 command-exists() {
 	if command -v $@ &> /dev/null; then
@@ -590,8 +592,14 @@ if $DEPCLEAN; then
 	maybe_depclean
 fi
 
-run eclean ${ECLEAN_DISTFILES_ARGS} ${MAYBE_PRETEND} distfiles
-run eclean ${MAYBE_PRETEND} packages
+if command-exists pclean && ${USE_PCLEAN}; then
+	run pclean dist ${PCLEAN_DISTFILES_ARGS} ${MAYBE_PRETEND} --installed --exists --fetch-restricted
+	run pclean pkg ${MAYBE_PRETEND} --installed --exists --fetch-restricted
+else
+	run eclean ${ECLEAN_DISTFILES_ARGS} ${MAYBE_PRETEND} distfiles
+	run eclean ${MAYBE_PRETEND} packages
+fi
+
 
 maybe_etckeeper_commit() {
 	if ! command-exists etckeeper; then
