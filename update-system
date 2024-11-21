@@ -437,6 +437,22 @@ finish_update_system() {
 		exit_status=0
 	fi
 
+
+	local finished_hook_dir="/etc/gentools/update-system.finished.d"
+	if [[ -d ${finished_hook_dir} ]]; then
+		local hook
+		for hook in ${finished_hook_dir}/*; do
+			if [[ ! -x ${hook} ]]; then
+				continue
+			fi
+
+			if ! "${hook}"; then
+				>&2 echo "ERROR: update-system finished hook ${hook} return with non-zero exit status: $?"
+			fi
+		done
+	fi
+
+
 	if $REBOOT; then
 		rm "${LAST_UNATTENDED_REBOOT_REQUIRED_FILE}"
 
