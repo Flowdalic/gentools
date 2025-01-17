@@ -443,11 +443,21 @@ finish_update_system() {
 		local hook
 		for hook in ${finished_hook_dir}/*; do
 			if [[ ! -x ${hook} ]]; then
+				if $DEBUG; then
+					echo "Not running ${hook}, because it is not marked executable"
+				fi
+				continue
+			fi
+
+			if $PRETEND; then
+				echo "Would have run ${hook}"
 				continue
 			fi
 
 			if ! "${hook}"; then
 				>&2 echo "ERROR: update-system finished hook ${hook} return with non-zero exit status: $?"
+			elif $DEBUG; then
+				 echo "Hook ${hook} ran successfully"
 			fi
 		done
 	fi
