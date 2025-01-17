@@ -577,6 +577,9 @@ if command-exists smart-live-rebuild; then
 
 		if ! $RUN_FAILED; then
 			echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_SMART_LIVE_REBUILD_FILE}"
+		else
+			# If smart-live-rebuild failed, do not try immediately again.
+			echo "$(( CURRENT_DAY_SINCE_EPOCH - 7 ))" > "${LAST_SMART_LIVE_REBUILD_FILE}"
 		fi
 	fi
 fi
