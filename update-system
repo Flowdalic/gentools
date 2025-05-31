@@ -203,11 +203,12 @@ fi
 
 if [[ -z ${JOBS} ]]; then
 	JOBS=$((CORES / 4))
-	if [[ ${JOBS} -gt 1 ]]; then
-		EMERGE_OPTS+=("--jobs=${JOBS}")
-	else
+	if [[ ${JOBS} -lt 1 ]]; then
 		JOBS=1
 	fi
+fi
+if [[ ${JOBS} -gt 1 ]]; then
+	EMERGE_OPTS+=("--jobs=${JOBS}")
 fi
 
 
