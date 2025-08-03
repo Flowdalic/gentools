@@ -331,6 +331,7 @@ check_last_flag_file() {
 }
 
 
+readonly STATEDIR=/var/lib/update-system
 readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 declare -ri SECONDS_PER_DAY=86400
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
@@ -446,8 +447,6 @@ echo "glsa-check: Checking for packages with known vulnerabilities"
 if ! run glsa-check -f affected; then
 	exit "${EXIT_GLSA_FIX_FAILED}"
 fi
-
-readonly STATEDIR=/var/lib/update-system
 
 LAST_UNATTENDED_REBOOT_REQUIRED_FILE="${STATEDIR}/last-unattended-reboot-required"
 
