@@ -15,7 +15,7 @@ EMERGE_UPDATE_OPTS=(
 	--changed-use
 )
 
-ONLY_WORLD=false
+ONLY_UPDATE_WORLD_PACKAGES=false
 DEBUG=false
 PRETEND=false
 SYNC=false
@@ -83,7 +83,7 @@ while getopts "cdj:l:no:pr:sw" OPTION; do
 		esac
 		;;
 	w)
-	    ONLY_WORLD=true
+	    ONLY_UPDATE_WORLD_PACKAGES=true
 	    ;;
 	*)
 		echo "Invalid option: ${OPTION}"
@@ -308,6 +308,50 @@ initPackagesArrays() {
 	NON_UPGRADEABLE_PACKAGES=()
 }
 
+check_last_flag_file() {
+	local -r last_flag_file="${1}"
+	local -ri perform_every_days="${2}"
+	local -r subject="${3}"
+
+	if [[ ! -f "${last_flag_file}" ]]; then
+		echo "${last_flag_file} for ${subject} does not exist"
+		return 0
+	fi
+
+	local -ri last_days=$(<"${last_flag_file}")
+	local -ri last_days_ago=$(( CURRENT_DAY_SINCE_EPOCH - last_days ))
+
+	if (( last_days_ago > perform_every_days )); then
+		echo "Last ${subject} ${last_days_ago} days ago, greater than threshold of ${perform_every_days} days."
+		return 0
+	else
+		echo "Last ${subject} ${last_days_ago} days ago, lower or equal than threshold of ${perform_every_days} days."
+		return 1
+	fi
+}
+
+
+readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
+declare -ri SECONDS_PER_DAY=86400
+declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
+
+if ! $ONLY_UPDATE_WORLD_PACKAGES; then
+	DO_WORLD_UPDATE=false
+
+	if check_last_flag_file "${LAST_WORLD_UPDATE_FILE}" "${WORLD_UPDATE_EVERY_DAYS}" "world update"; then
+		DO_WORLD_UPDATE=true
+	fi
+
+	if $DO_WORLD_UPDATE; then
+		echo "Performing regular world update"
+		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world
+
+		if ! $RUN_FAILED; then
+			echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
+		fi
+	fi
+fi
+
 initPackagesArrays
 
 # First try update all packages that become obsolete since this also
@@ -315,7 +359,7 @@ initPackagesArrays
 # rebuilds, which may also include packages that would have been
 # updated at a later stage anyways. We therefore prevent emerging the
 # same package twice.
-if ! $ONLY_WORLD; then
+if ! $ONLY_UPDATE_WORLD_PACKAGES; then
 	echo "Searching for obsolete packages"
 	determineObsoletePackages
 
@@ -478,7 +522,7 @@ finish_update_system() {
 	exit "${exit_status}"
 }
 
-$ONLY_WORLD && finish_update_system
+$ONLY_UPDATE_WORLD_PACKAGES && finish_update_system
 
 # Note that eix will return an non-zero exit code if no package was
 # found, hence we add "|| true".
@@ -494,48 +538,6 @@ if [[ ${#NON_UPGRADEABLE_PACKAGES[@]} -ne 0 ]]; then
 	for pkg in ${NON_UPGRADEABLE_PACKAGES[@]}; do
 		eix $pkg
 	done
-fi
-
-readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
-
-declare -ri SECONDS_PER_DAY=86400
-
-DO_WORLD_UPDATE=false
-declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
-
-check_last_flag_file() {
-	local -r last_flag_file="${1}"
-	local -ri perform_every_days="${2}"
-	local -r subject="${3}"
-
-	if [[ ! -f "${last_flag_file}" ]]; then
-		echo "${last_flag_file} for ${subject} does not exist"
-		return 0
-	fi
-
-	local -ri last_days=$(<"${last_flag_file}")
-	local -ri last_days_ago=$(( CURRENT_DAY_SINCE_EPOCH - last_days ))
-
-	if (( last_days_ago > perform_every_days )); then
-		echo "Last ${subject} ${last_days_ago} days ago, greater than threshold of ${perform_every_days} days."
-		return 0
-	else
-		echo "Last ${subject} ${last_days_ago} days ago, lower or equal than threshold of ${perform_every_days} days."
-		return 1
-	fi
-}
-
-if check_last_flag_file "${LAST_WORLD_UPDATE_FILE}" "${WORLD_UPDATE_EVERY_DAYS}" "world update"; then
-   DO_WORLD_UPDATE=true
-fi
-
-if $DO_WORLD_UPDATE; then
-	echo "Performing regular world update"
-	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world
-
-	if ! $RUN_FAILED; then
-		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
-	fi
 fi
 
 # if command-exists perl-cleaner; then
