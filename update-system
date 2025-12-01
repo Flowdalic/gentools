@@ -30,6 +30,7 @@ MAYBE_PRETEND=""
 UNATTENDED_REBOOT=false
 UNATTENDED_REBOOT_AFTER_DAYS=19
 ECLEAN_KERNEL=true
+WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE=true
 # Not ready yet
 USE_PCLEAN=false
 
@@ -98,6 +99,7 @@ fi
 declare -i WORLD_UPDATE_EVERY_DAYS=51
 declare -i SMART_LIVE_REBUILD_EVERY_DAYS=14
 declare -i PRESERVED_REBUILD_EVERY_DAYS=28
+declare -i WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_EVERY_DAYS=37
 ECLEAN_DISTFILES_ARGS=
 EXTRA_ECLEAN_KERNEL_ARGS=()
 
@@ -336,6 +338,15 @@ readonly LAST_WORLD_UPDATE_FILE="${STATEDIR}/last-world-update"
 declare -ri SECONDS_PER_DAY=86400
 declare -ri CURRENT_DAY_SINCE_EPOCH=$(( $(date +%s) / SECONDS_PER_DAY ))
 
+deepWorldUpdate() {
+	echo "Performing regular world update"
+	run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} "$@" --deep @world
+
+	if ! $RUN_FAILED; then
+		echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
+	fi
+}
+
 if ! $ONLY_UPDATE_WORLD_PACKAGES; then
 	DO_WORLD_UPDATE=false
 
@@ -344,12 +355,7 @@ if ! $ONLY_UPDATE_WORLD_PACKAGES; then
 	fi
 
 	if $DO_WORLD_UPDATE; then
-		echo "Performing regular world update"
-		run emerge ${EMERGE_OPTS[@]} ${EMERGE_UPDATE_OPTS[@]} ${MAYBE_EMERGE_USEPKG_OPT} --deep @world
-
-		if ! $RUN_FAILED; then
-			echo "${CURRENT_DAY_SINCE_EPOCH}" > "${LAST_WORLD_UPDATE_FILE}"
-		fi
+		deepWorldUpdate
 	fi
 fi
 
@@ -616,7 +622,18 @@ maybe_depclean() {
 		local -x DO_NOT_RECORD_FAILURE=1
 	fi
 
-	run emerge --depclean
+	if ! emerge --depclean; then
+		if ${WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE}; then
+			readonly LAST_WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_FILE="${STATEDIR}/last-world-update-after-depclean-failure"
+			if check_last_flag_file "${LAST_WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_FILE}" "${WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_EVERY_DAYS}" "world update after depclean failure"; then
+				# Use --newuse for world update if --depclean failed before
+				deepWorldUpdate --newuse
+				run emerge --depclean
+			fi
+		else
+			FAILED_COMMANDS+=( "emerge --depclean" )
+		fi
+	fi
 }
 
 if $DEPCLEAN; then
