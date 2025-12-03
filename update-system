@@ -626,8 +626,8 @@ maybe_depclean() {
 		if ${WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE}; then
 			readonly LAST_WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_FILE="${STATEDIR}/last-world-update-after-depclean-failure"
 			if check_last_flag_file "${LAST_WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_FILE}" "${WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE_EVERY_DAYS}" "world update after depclean failure"; then
-				# Use --newuse for world update if --depclean failed before
-				deepWorldUpdate --newuse
+				# Use --newuse and --with-bdeps=y for world update if --depclean failed before
+				deepWorldUpdate --newuse --with-bdeps=y
 				run emerge --depclean
 			fi
 		else
