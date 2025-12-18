@@ -204,9 +204,13 @@ if $BE_ULTRA_NICE || [[ -n "${LOAD_PERCENTAGE}" ]]; then
 fi
 
 if [[ -z ${JOBS} ]]; then
-	JOBS=$((CORES / 4))
-	if [[ ${JOBS} -lt 1 ]]; then
-		JOBS=1
+	if systemctl is-active steve; then
+		JOBS=$(nproc)
+	else
+		JOBS=$((CORES / 4))
+		if [[ ${JOBS} -lt 1 ]]; then
+			JOBS=1
+		fi
 	fi
 fi
 if [[ ${JOBS} -gt 1 ]]; then
