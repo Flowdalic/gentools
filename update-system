@@ -168,6 +168,16 @@ for I in $(seq 1 ${WAIT_NETWORK_SECS}); do
 	sleep 1
 done
 
+LOCK_FILE=/run/emerge-world.lock
+[[ ! -f ${LOCK_FILE} ]] && touch "${LOCK_FILE}"
+exec {LOCK_FD}> "${LOCK_FILE}"
+
+if ! flock -n -x "${LOCK_FD}"; then
+	echo "INFO: Could not lock ${LOCK_FILE}, probably another world update running. Exiting"
+	exit 0
+fi
+
+
 # Disable iwdevtools, if installed, for update-system runs.
 export IWDT_ALL=n
 
