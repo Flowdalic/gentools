@@ -584,7 +584,7 @@ if command-exists smart-live-rebuild; then
 	if check_last_flag_file "${LAST_SMART_LIVE_REBUILD_FILE}" "${SMART_LIVE_REBUILD_EVERY_DAYS}" "smart live rebuild"; then
 		SMART_LIVE_REBUILD_ARGS=(
 			--jobs=${JOBS}
-			--filter-packages=!app-doc/eclass-manpages
+#			--filter-packages=!app-doc/eclass-manpages
 		)
 
 		if $USEPKG; then
