@@ -567,6 +567,13 @@ if command-exists haskell-updater; then
 	run haskell-updater -- --jobs=${JOBS}
 fi
 
+
+if command-exists systemd-detect-virt; then
+	if systemd-detect-virt --container >/dev/null; then
+		ECLEAN_KERNEL=false
+	fi
+fi
+
 if command-exists eclean-kernel && $ECLEAN_KERNEL; then
 	ECLEAN_KERNEL_ARGS=(
 		--num 5
