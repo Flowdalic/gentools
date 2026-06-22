@@ -277,6 +277,24 @@ run() {
 }
 
 if $SYNC; then
+	readonly GENTOO_DEV_KEYS_PKG=sec-keys/openpgp-keys-gentoo-developers-99999999
+	if qlist -Iq "${GENTOO_DEV_KEYS_PKG}" >/dev/null; then
+		ACTIVE_DEVS_GPG_URL="https://qa-reports.gentoo.org/output/active-devs.gpg"
+
+		ACTIVE_DEVS_GPG_LAST_MODIFIED=$(curl -sI "$ACTIVE_DEVS_GPG_URL"  | grep -i "^last-modified:" | cut -d' ' -f2- | tr -d '\r')
+		if [[ -z ${ACTIVE_DEVS_GPG_LAST_MODIFIED} ]]; then
+			echo "WARNING: Unable to obtain last-modified from ${ACTIVE_DEVS_GPG_URL}"
+		else
+			ACTIVE_DEVS_GPG_LAST_MODIFIED_UNIX_TIME=$(date -d "${ACTIVE_DEVS_GPG_LAST_MODIFIED}" +%s)
+			GENTOO_DEV_KEYS_BUILD_TIME=$(< /var/db/pkg/${GENTOO_DEV_KEYS_PKG}/BUILD_TIME)
+
+			if [[ ${ACTIVE_DEVS_GPG_LAST_MODIFIED_UNIX_TIME} -gt ${GENTOO_DEV_KEYS_BUILD_TIME} ]]; then
+				echo "New Gentoo Developer Keys found $(date -d @${ACTIVE_DEVS_GPG_LAST_MODIFIED_UNIX_TIME} --iso-8601=minutes), current: $(date -d @${GENTOO_DEV_KEYS_BUILD_TIME} --iso-8601=minutes), re-emerging ${GENTOO_DEV_KEYS_PKG}"
+				run emerge "${GENTOO_DEV_KEYS_PKG}"
+			fi
+		fi
+	fi
+
 	run emerge --sync --verbose
 
 	# Only invoke update is /var/cache/eix/remote.eix is not from today.
