@@ -16,3 +16,6 @@ MemoryHigh=80%
 MemoryMax=95%
 
 Environment=NO_COLOR=true
+
+# Give Portage plently of time to drain the merge-wait queue
+TimeoutStopSec=15min
