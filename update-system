@@ -290,7 +290,7 @@ if $SYNC; then
 
 			if [[ ${ACTIVE_DEVS_GPG_LAST_MODIFIED_UNIX_TIME} -gt ${GENTOO_DEV_KEYS_BUILD_TIME} ]]; then
 				echo "New Gentoo Developer Keys found $(date -d @${ACTIVE_DEVS_GPG_LAST_MODIFIED_UNIX_TIME} --iso-8601=minutes), current: $(date -d @${GENTOO_DEV_KEYS_BUILD_TIME} --iso-8601=minutes), re-emerging ${GENTOO_DEV_KEYS_PKG}"
-				run emerge "${GENTOO_DEV_KEYS_PKG}"
+				run emerge ="${GENTOO_DEV_KEYS_PKG}"
 			fi
 		fi
 	fi
