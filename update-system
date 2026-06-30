@@ -279,7 +279,7 @@ run() {
 
 if qlist -Iq "sys-apps/portage-9999" >/dev/null && [[ ${AUTOBUMP_PORTAGE_LIVE} ]]; then
 	if command-exists smart-live-rebuild; then
-		smart-live-rebuild -f sys-apps/portage
+		run smart-live-rebuild -f sys-apps/portage
 	else
 		>&2 echo "WARNING: Live version of portage installed, but smart-live-rebuild not available"
 	fi
