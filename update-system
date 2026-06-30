@@ -31,6 +31,7 @@ UNATTENDED_REBOOT=false
 UNATTENDED_REBOOT_AFTER_DAYS=19
 ECLEAN_KERNEL=true
 WORLD_UPDATE_AFTER_DEPCLEAN_FAILURE=true
+AUTOBUMP_PORTAGE_LIVE=1
 # Not ready yet
 USE_PCLEAN=false
 
@@ -275,6 +276,14 @@ run() {
 	# Do not return $exit_status here, as we want commands invoked
 	# with 'run' to be non-fatal.
 }
+
+if qlist -Iq "sys-apps/portage-9999" >/dev/null && [[ ${AUTOBUMP_PORTAGE_LIVE} ]]; then
+	if command-exists smart-live-rebuild; then
+		smart-live-rebuild -f sys-apps/portage
+	else
+		>&2 echo "WARNING: Live version of portage installed, but smart-live-rebuild not available"
+	fi
+fi
 
 if $SYNC; then
 	readonly GENTOO_DEV_KEYS_PKG=sec-keys/openpgp-keys-gentoo-developers-99999999
