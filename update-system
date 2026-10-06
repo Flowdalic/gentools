@@ -290,7 +290,7 @@ if $SYNC; then
 	if qlist -Iq "${GENTOO_DEV_KEYS_PKG}" >/dev/null; then
 		ACTIVE_DEVS_GPG_URL="https://qa-reports.gentoo.org/output/active-devs.gpg"
 
-		ACTIVE_DEVS_GPG_LAST_MODIFIED=$(curl -sI "$ACTIVE_DEVS_GPG_URL"  | grep -i "^last-modified:" | cut -d' ' -f2- | tr -d '\r')
+		ACTIVE_DEVS_GPG_LAST_MODIFIED=$(curl -sI "$ACTIVE_DEVS_GPG_URL"  | grep -i "^last-modified:" | cut -d' ' -f2- | tr -d '\r' || true)
 		if [[ -z ${ACTIVE_DEVS_GPG_LAST_MODIFIED} ]]; then
 			echo "WARNING: Unable to obtain last-modified from ${ACTIVE_DEVS_GPG_URL}"
 		else
